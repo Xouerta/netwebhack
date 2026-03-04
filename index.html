@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地下城爬塔 · 种子驱动Roguelike</title>
+    <title>地下城爬塔 · 背包系统</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -24,6 +24,18 @@
         <div class="modal-buttons">
             <button class="modal-btn" id="confirmYes">是</button>
             <button class="modal-btn negative" id="confirmNo">否</button>
+        </div>
+    </div>
+</div>
+
+<!-- 丢弃物品弹窗 -->
+<div id="dropItemModal" class="modal">
+    <div class="modal-content">
+        <h3>🗑️ 选择要丢弃的物品</h3>
+        <div id="dropItemList" class="drop-item-list"></div>
+        <div class="modal-buttons">
+            <button class="modal-btn" id="dropItemConfirm">确认</button>
+            <button class="modal-btn negative" id="dropItemCancel">取消</button>
         </div>
     </div>
 </div>
@@ -54,11 +66,14 @@
 
 <div class="game-wrapper">
     <div class="main-panel">
+        <!-- 左侧背包栏 -->
+        <div id="inventoryContainer" class="inventory-container"></div>
+
         <div class="game-area">
             <div class="header">
-                <div style="font-size: 1.8rem;">⚔️ 地下城·成长AI</div>
+                <div style="font-size: 1.8rem;">⚔️ 地下城·背包系统</div>
                 <div class="seed-area">
-                    <input type="text" id="seedInput" value="AI-GROW-5LVL" maxlength="15">
+                    <input type="text" id="seedInput" value="BAG-5LVL-001" maxlength="15">
                     <button id="applySeed">🌀 生成</button>
                     <button id="randomSeed" class="random-btn">🎲 随机</button>
                 </div>
@@ -78,18 +93,18 @@
             </div>
 
             <div class="legend">
-                <div class="legend-item"><span style="font-size:1.4rem;">🗡️</span> 剑(+1攻)</div>
-                <div class="legend-item"><span style="font-size:1.4rem;">🛡️</span> 盾(+1防)</div>
-                <div class="legend-item"><span style="font-size:1.4rem;">🧴</span> 血药(+1HP)</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🗡️</span> 剑</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🛡️</span> 盾</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🧴</span> 血药</div>
                 <div class="legend-item"><span class="event-dot">❓</span> 随机事件</div>
                 <div class="legend-item"><span class="monster-dot"></span> 小怪物</div>
                 <div class="legend-item"><span class="big-monster-dot"></span> 大怪物</div>
                 <div class="legend-item"><span class="boss-dot"></span> Boss</div>
-                <div class="legend-item"><span class="stairs-dot"></span> 楼梯(下一层)</div>
+                <div class="legend-item"><span class="stairs-dot"></span> 楼梯</div>
             </div>
         </div>
 
-        <!-- 日志栏 -->
+        <!-- 右侧日志栏 -->
         <div class="log-area">
             <div class="log-header">📜 战斗日志</div>
             <div class="log-content" id="logContent">
@@ -113,6 +128,7 @@
 <script src="js/ui/renderer.js"></script>
 <script src="js/ui/modal.js"></script>
 <script src="js/ui/controls.js"></script>
+<script src="js/ui/inventory.js"></script>
 <script src="js/core/game.js"></script>
 <script src="js/main.js"></script>
 </body>

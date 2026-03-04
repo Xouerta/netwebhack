@@ -8,6 +8,7 @@ class ModalManager {
         this.eventModal = document.getElementById('eventModal');
         this.confirmModal = document.getElementById('confirmModal');
         this.gameOverModal = document.getElementById('gameOverModal');
+        this.dropItemModal = document.getElementById('dropItemModal');
 
         this.modalTitle = document.getElementById('eventTitle');
         this.modalDesc = document.getElementById('eventDesc');
@@ -16,6 +17,10 @@ class ModalManager {
 
         this.confirmYes = document.getElementById('confirmYes');
         this.confirmNo = document.getElementById('confirmNo');
+
+        this.dropItemList = document.getElementById('dropItemList');
+        this.dropItemConfirm = document.getElementById('dropItemConfirm');
+        this.dropItemCancel = document.getElementById('dropItemCancel');
 
         this._setupEventListeners();
     }
@@ -36,6 +41,9 @@ class ModalManager {
                 if (this.confirmCallback) {
                     this.confirmCallback(false);
                 }
+            }
+            if (e.target === this.dropItemModal) {
+                this.dropItemModal.style.display = 'none';
             }
         };
     }
@@ -83,6 +91,85 @@ class ModalManager {
     }
 
     /**
+     * 显示丢弃物品弹窗
+     * @param {Array} inventory - 背包物品数组
+     * @param {Function} onDrop - 丢弃回调函数，接收物品索引
+     */
+    showDropItemModal(inventory, onDrop) {
+        if (!this.dropItemModal) {
+            console.error('丢弃物品弹窗元素不存在');
+            return;
+        }
+
+        this.dropItemList.innerHTML = '';
+
+        if (inventory.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'drop-item-empty';
+            emptyMsg.textContent = '背包空空如也';
+            this.dropItemList.appendChild(emptyMsg);
+        } else {
+            inventory.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'drop-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = this._getItemDisplayName(item.type);
+
+                const dropBtn = document.createElement('button');
+                dropBtn.className = 'drop-btn';
+                dropBtn.textContent = '丢弃';
+                dropBtn.onclick = () => {
+                    onDrop(index);
+                    this.dropItemModal.style.display = 'none';
+                };
+
+                itemDiv.appendChild(nameSpan);
+                itemDiv.appendChild(dropBtn);
+                this.dropItemList.appendChild(itemDiv);
+            });
+        }
+
+        this.dropItemCancel.onclick = () => {
+            this.dropItemModal.style.display = 'none';
+        };
+
+        this.dropItemModal.style.display = 'flex';
+    }
+
+    /**
+     * 显示拾取确认弹窗
+     * @param {string} itemType - 物品类型
+     * @param {Function} onConfirm - 确认回调
+     * @param {Function} onCancel - 取消回调
+     */
+    showPickupConfirmModal(itemType, onConfirm, onCancel) {
+        const itemName = this._getItemDisplayName(itemType);
+        this.showConfirmModal(
+            `是否拾取 ${itemName}？\n(按回车确认，按ESC取消)`,
+            (confirmed) => {
+                if (confirmed) {
+                    onConfirm();
+                } else {
+                    onCancel();
+                }
+            }
+        );
+    }
+
+    /**
+     * 获取物品显示名称
+     */
+    _getItemDisplayName(itemType) {
+        const names = {
+            'sword': '🗡️ 剑',
+            'shield': '🛡️ 盾',
+            'potion': '🧴 血药'
+        };
+        return names[itemType] || itemType;
+    }
+
+    /**
      * 显示游戏结束弹窗
      */
     showGameOverModal(score, isVictory) {
@@ -104,5 +191,8 @@ class ModalManager {
         this.eventModal.style.display = 'none';
         this.confirmModal.style.display = 'none';
         this.gameOverModal.style.display = 'none';
+        if (this.dropItemModal) {
+            this.dropItemModal.style.display = 'none';
+        }
     }
 }

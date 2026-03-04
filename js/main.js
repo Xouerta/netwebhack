@@ -11,8 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const logSystem = new LogSystem(document.getElementById('logContent'));
     const game = new Game();
 
-    // 注入依赖
-    game.init(renderer, modalManager, logSystem);
+    // 初始化背包UI（需要先有game实例）
+    const inventoryUI = new InventoryUI('inventoryContainer', game);
+
+    // 注入依赖（包括背包UI）
+    game.init(renderer, modalManager, logSystem, inventoryUI);
 
     // 绑定UI按钮事件
     document.getElementById('applySeed').addEventListener('click', () => {
@@ -38,5 +41,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 加载默认世界
-    game.loadWorld('AI-GROW-5LVL');
+    game.loadWorld('BAG-5LVL-001');
 });
