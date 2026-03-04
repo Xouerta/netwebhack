@@ -24,6 +24,9 @@ class Game {
         this.waitingForEvent = false;
         this.pendingStairs = false;
 
+        // 战斗冷却标记，防止同一回合内多次战斗
+        this.inCombat = false;
+
         this.stats = {
             smallKills: 0,
             bigKills: 0,
@@ -74,6 +77,7 @@ class Game {
         this.gameWin = false;
         this.gameOver = false;
         this.waitingForEvent = false;
+        this.inCombat = false;
 
         this.logSystem.clear();
         this._loadLevel(1);
@@ -251,7 +255,7 @@ class Game {
      * 移动玩家
      */
     movePlayer(dr, dc) {
-        if (this.gameWin || this.gameOver || this.waitingForEvent) return;
+        if (this.gameWin || this.gameOver || this.waitingForEvent || this.inCombat) return;
 
         let nr = this.player.row + dr;
         let nc = this.player.col + dc;
@@ -278,7 +282,7 @@ class Game {
         this.renderer.render(this.maze, this.player, this.monsters, this.stairsPos, this.gameWin, this.gameOver);
 
         // 怪物移动
-        if (!this.waitingForEvent && !this.gameWin && !this.gameOver) {
+        if (!this.waitingForEvent && !this.gameWin && !this.gameOver && !this.inCombat) {
             this._moveMonsters();
         }
     }
@@ -287,6 +291,10 @@ class Game {
      * 处理战斗
      */
     _handleCombat(monsterIdx) {
+        // 设置战斗标记，防止重复进入战斗
+        if (this.inCombat) return;
+        this.inCombat = true;
+
         const monster = this.monsters[monsterIdx];
 
         const result = CombatSystem.fight(
@@ -312,6 +320,9 @@ class Game {
             const score = ScoreSystem.calculate(this.player, this.stats, this.currentLevel);
             this.modalManager.showGameOverModal(score, false);
         }
+
+        // 战斗结束后清除战斗标记
+        this.inCombat = false;
 
         this._updateUI();
         this.renderer.render(this.maze, this.player, this.monsters, this.stairsPos, this.gameWin, this.gameOver);
@@ -378,28 +389,35 @@ class Game {
      * 移动所有怪物（AI）
      */
     _moveMonsters() {
-        if (this.gameWin || this.gameOver || this.waitingForEvent) return;
+        if (this.gameWin || this.gameOver || this.waitingForEvent || this.inCombat) return;
 
         const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
         const playerPower = this.player.getPower();
         const newMonsters = [];
 
+        // 先记录玩家当前位置，防止怪物移动过程中玩家位置变化
+        const playerRow = this.player.row;
+        const playerCol = this.player.col;
+
         for (let m of this.monsters) {
             if (m.type === 'boss') {
                 // Boss始终追逐玩家
-                this._moveBoss(m, dirs, newMonsters);
+                this._moveBoss(m, dirs, playerRow, playerCol, newMonsters);
             } else {
                 // 普通怪物根据实力决定行为
-                this._moveNormalMonster(m, dirs, playerPower, newMonsters);
+                this._moveNormalMonster(m, dirs, playerPower, playerRow, playerCol, newMonsters);
             }
         }
 
         this.monsters = newMonsters;
 
-        // 检查怪物是否撞上玩家
-        const monsterIdx = this.monsters.findIndex(m => m.row === this.player.row && m.col === this.player.col);
-        if (monsterIdx !== -1) {
-            this._handleCombat(monsterIdx);
+        // 检查怪物是否撞上玩家（避免同一回合内多次战斗）
+        const monsterAtPlayer = this.monsters.find(m => m.row === this.player.row && m.col === this.player.col);
+        if (monsterAtPlayer && !this.inCombat && !this.gameWin && !this.gameOver) {
+            const monsterIdx = this.monsters.findIndex(m => m.row === this.player.row && m.col === this.player.col);
+            if (monsterIdx !== -1) {
+                this._handleCombat(monsterIdx);
+            }
         }
 
         this.renderer.render(this.maze, this.player, this.monsters, this.stairsPos, this.gameWin, this.gameOver);
@@ -408,15 +426,15 @@ class Game {
     /**
      * 移动Boss（始终追逐）
      */
-    _moveBoss(monster, dirs, newMonsters) {
+    _moveBoss(monster, dirs, playerRow, playerCol, newMonsters) {
         let bestDir = null;
         let bestDist = 999;
 
         for (let [dr, dc] of dirs) {
             let nr = monster.row + dr;
             let nc = monster.col + dc;
-            if (this._canMonsterMoveTo(nr, nc, monster)) {
-                let dist = Math.abs(nr - this.player.row) + Math.abs(nc - this.player.col);
+            if (this._canMonsterMoveTo(nr, nc, monster, newMonsters)) {
+                let dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
                 if (dist < bestDist) {
                     bestDist = dist;
                     bestDir = [dr, dc];
@@ -436,18 +454,18 @@ class Game {
     /**
      * 移动普通怪物（根据实力对比）
      */
-    _moveNormalMonster(monster, dirs, playerPower, newMonsters) {
-        const dist = Math.abs(monster.row - this.player.row) + Math.abs(monster.col - this.player.col);
+    _moveNormalMonster(monster, dirs, playerPower, playerRow, playerCol, newMonsters) {
+        const dist = Math.abs(monster.row - playerRow) + Math.abs(monster.col - playerCol);
         const monsterPower = monster.getPower();
 
         if (dist <= 2) {
             // 两格内，根据实力决定行为
             if (monsterPower > playerPower) {
                 // 怪物更强，追逐
-                this._chasePlayer(monster, dirs, newMonsters);
+                this._chasePlayer(monster, dirs, playerRow, playerCol, newMonsters);
             } else if (monsterPower < playerPower) {
                 // 玩家更强，逃跑
-                this._fleeFromPlayer(monster, dirs, newMonsters);
+                this._fleeFromPlayer(monster, dirs, playerRow, playerCol, newMonsters);
             } else {
                 // 势均力敌，随机移动
                 this._randomMove(monster, dirs, newMonsters);
@@ -461,15 +479,15 @@ class Game {
     /**
      * 追逐玩家
      */
-    _chasePlayer(monster, dirs, newMonsters) {
+    _chasePlayer(monster, dirs, playerRow, playerCol, newMonsters) {
         let bestDir = null;
         let bestDist = 999;
 
         for (let [dr, dc] of dirs) {
             let nr = monster.row + dr;
             let nc = monster.col + dc;
-            if (this._canMonsterMoveTo(nr, nc, monster)) {
-                let dist = Math.abs(nr - this.player.row) + Math.abs(nc - this.player.col);
+            if (this._canMonsterMoveTo(nr, nc, monster, newMonsters)) {
+                let dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
                 if (dist < bestDist) {
                     bestDist = dist;
                     bestDir = [dr, dc];
@@ -489,15 +507,15 @@ class Game {
     /**
      * 逃离玩家
      */
-    _fleeFromPlayer(monster, dirs, newMonsters) {
+    _fleeFromPlayer(monster, dirs, playerRow, playerCol, newMonsters) {
         let bestDir = null;
         let bestDist = -1;
 
         for (let [dr, dc] of dirs) {
             let nr = monster.row + dr;
             let nc = monster.col + dc;
-            if (this._canMonsterMoveTo(nr, nc, monster)) {
-                let dist = Math.abs(nr - this.player.row) + Math.abs(nc - this.player.col);
+            if (this._canMonsterMoveTo(nr, nc, monster, newMonsters)) {
+                let dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
                 if (dist > bestDist) {
                     bestDist = dist;
                     bestDir = [dr, dc];
@@ -527,7 +545,7 @@ class Game {
             let nc = monster.col + dc;
             tries++;
 
-            if (this._canMonsterMoveTo(nr, nc, monster)) {
+            if (this._canMonsterMoveTo(nr, nc, monster, newMonsters)) {
                 monster.row = nr;
                 monster.col = nc;
                 moved = true;
@@ -539,14 +557,25 @@ class Game {
 
     /**
      * 检查怪物是否可以移动到指定位置
+     * @param {number} row - 目标行
+     * @param {number} col - 目标列
+     * @param {Object} currentMonster - 当前移动的怪物
+     * @param {Array} newMonsters - 已经移动过的怪物列表（用于检查重叠）
      */
-    _canMonsterMoveTo(row, col, currentMonster) {
+    _canMonsterMoveTo(row, col, currentMonster, newMonsters = []) {
         if (row < 1 || row >= this.SIZE - 1 || col < 1 || col >= this.SIZE - 1) return false;
         if (this.maze[row][col] !== 1) return false;
 
-        // 检查是否有其他怪物
-        const occupied = this.monsters.some(m => m !== currentMonster && m.row === row && m.col === col);
-        if (occupied) return false;
+        // 检查是否与已经移动过的怪物重叠
+        const occupiedByNew = newMonsters.some(m => m.row === row && m.col === col);
+        if (occupiedByNew) return false;
+
+        // 检查是否与尚未移动的怪物重叠（排除自己）
+        const occupiedByOld = this.monsters.some(m => m !== currentMonster && m.row === row && m.col === col);
+        if (occupiedByOld) return false;
+
+        // 检查是否与玩家重叠（允许重叠，但会在后续触发战斗）
+        // 这里允许重叠，因为战斗逻辑会在移动后统一处理
 
         // 不能走到楼梯
         if (row === this.stairsPos.row && col === this.stairsPos.col) return false;
