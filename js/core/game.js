@@ -8,6 +8,7 @@ class Game {
         this.SIZE = 40;
         this.TOTAL_LEVELS = 5;
         this.MAX_MONSTERS = 15;
+        this.MIN_BIG_MONSTER_DISTANCE = 10; // 大怪最小距离
 
         this.currentLevel = 1;
         this.maze = [];
@@ -93,7 +94,7 @@ class Game {
         this.maze = result.grid;
         this.stairsPos = result.stairsPos;
 
-        // 生成怪物
+        // 生成怪物（优化排布）
         this.monsters = this._spawnMonsters(level);
 
         // 重置玩家位置
@@ -107,7 +108,7 @@ class Game {
     }
 
     /**
-     * 生成怪物
+     * 生成怪物（优化排布）
      */
     _spawnMonsters(level) {
         if (level === this.TOTAL_LEVELS) {
@@ -118,17 +119,37 @@ class Game {
         let mobs = [];
         let freeCells = this._getFreeCellsForMonsters();
 
+        // 按距离排序，远的优先
+        freeCells = this._sortCellsByDistanceFromPlayer(freeCells, 1, 1);
+
         const monsterCount = Math.min(
             5 + level * 2 + Math.floor(this.rngs.monster() * 4),
             this.MAX_MONSTERS
         );
 
-        for (let i = 0; i < monsterCount && i < freeCells.length; i++) {
-            let [r, c] = freeCells[i];
-            let isBig = this.rngs.monster() < (0.2 + level * 0.1);
-            let type = isBig ? 'big' : 'small';
+        // 先放置大怪（确保大怪在远处）
+        let bigMonstersPlaced = 0;
+        const bigMonsterCount = Math.floor(monsterCount * (0.2 + level * 0.1));
 
-            const monster = MonsterGenerator.spawn(level, type, r, c, i, this.rngs.monster);
+        for (let i = 0; i < freeCells.length && bigMonstersPlaced < bigMonsterCount; i++) {
+            let [r, c] = freeCells[i];
+            const dist = this._manhattanDistance(r, c, 1, 1);
+
+            // 大怪必须在最小距离之外
+            if (dist >= this.MIN_BIG_MONSTER_DISTANCE) {
+                const monster = MonsterGenerator.spawn(level, 'big', r, c, `big_${i}`, this.rngs.monster);
+                mobs.push(monster);
+                bigMonstersPlaced++;
+                freeCells.splice(i, 1);
+                i--;
+            }
+        }
+
+        // 再放置小怪（可以在任何位置）
+        const smallMonsterCount = monsterCount - bigMonstersPlaced;
+        for (let i = 0; i < smallMonsterCount && i < freeCells.length; i++) {
+            let [r, c] = freeCells[i];
+            const monster = MonsterGenerator.spawn(level, 'small', r, c, `small_${i}`, this.rngs.monster);
             mobs.push(monster);
         }
 
@@ -140,11 +161,33 @@ class Game {
      */
     _spawnBoss(level) {
         let freeCells = this._getFreeCellsForMonsters();
+        // Boss放在最远的地方
+        freeCells = this._sortCellsByDistanceFromPlayer(freeCells, 1, 1);
+
         if (freeCells.length === 0) return [];
 
-        let [r, c] = freeCells[0];
+        // 取最远的格子放Boss
+        let [r, c] = freeCells[freeCells.length - 1];
         const boss = MonsterGenerator.spawn(level, 'boss', r, c, 'boss', this.rngs.monster);
         return [boss];
+    }
+
+    /**
+     * 按距离从远到近排序
+     */
+    _sortCellsByDistanceFromPlayer(cells, playerRow, playerCol) {
+        return cells.sort((a, b) => {
+            const distA = this._manhattanDistance(a[0], a[1], playerRow, playerCol);
+            const distB = this._manhattanDistance(b[0], b[1], playerRow, playerCol);
+            return distB - distA; // 远的在前
+        });
+    }
+
+    /**
+     * 计算曼哈顿距离
+     */
+    _manhattanDistance(r1, c1, r2, c2) {
+        return Math.abs(r1 - r2) + Math.abs(c1 - c2);
     }
 
     /**
@@ -161,7 +204,7 @@ class Game {
                 }
             }
         }
-        return RNG.shuffle(Math.random, free); // 临时使用Math.random，实际应该用rngs.monster
+        return free;
     }
 
     /**
