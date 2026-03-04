@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地下城爬塔 · 种子驱动Roguelike</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- 随机事件弹窗 -->
+<div id="eventModal" class="modal">
+    <div class="modal-content" id="eventModalContent">
+        <h3 id="eventTitle">❓ 随机事件</h3>
+        <p id="eventDesc">你遇到了一件神秘的事情...</p>
+        <div class="modal-buttons" id="eventButtons"></div>
+    </div>
+</div>
+
+<!-- 下楼确认弹窗 -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h3>⚠️ 确认下楼</h3>
+        <p id="confirmMessage">确定要前往下一层吗？</p>
+        <div class="modal-buttons">
+            <button class="modal-btn" id="confirmYes">是</button>
+            <button class="modal-btn negative" id="confirmNo">否</button>
+        </div>
+    </div>
+</div>
+
+<!-- 游戏结算弹窗 -->
+<div id="gameOverModal" class="modal">
+    <div class="modal-content">
+        <h3 id="resultTitle">🏆 游戏结束</h3>
+        <div id="scoreDetails">
+            <div class="stat-row"><span>📊 基础分数</span> <span id="baseScore">0</span></div>
+            <div class="stat-row"><span>⚔️ 杀敌数 (小怪×10)</span> <span id="smallKills">0</span></div>
+            <div class="stat-row"><span>👾 杀敌数 (大怪×25)</span> <span id="bigKills">0</span></div>
+            <div class="stat-row"><span>👑 Boss击杀×500</span> <span id="bossKill">0</span></div>
+            <div class="stat-row"><span>🗡️ 攻击力 ×5</span> <span id="atkScore">0</span></div>
+            <div class="stat-row"><span>🛡️ 防御力 ×5</span> <span id="defScore">0</span></div>
+            <div class="stat-row"><span>❤️ 剩余生命 ×10</span> <span id="hpScore">0</span></div>
+            <div class="stat-row"><span>📦 拾取道具 ×20</span> <span id="itemScore">0</span></div>
+            <div class="stat-row"><span>👣 步数 (越少越好) </span> <span id="stepScore">0</span></div>
+            <div class="stat-row"><span>🎲 随机事件 ×15</span> <span id="eventScore">0</span></div>
+            <div class="stat-row"><span>🏆 到达层数 ×100</span> <span id="levelScore">0</span></div>
+            <div class="total-score" id="totalScore">总分: 0</div>
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn" onclick="window.closeGameOverModal()">继续</button>
+        </div>
+    </div>
+</div>
+
+<div class="game-wrapper">
+    <div class="main-panel">
+        <div class="game-area">
+            <div class="header">
+                <div style="font-size: 1.8rem;">⚔️ 地下城·成长AI</div>
+                <div class="seed-area">
+                    <input type="text" id="seedInput" value="AI-GROW-5LVL" maxlength="15">
+                    <button id="applySeed">🌀 生成</button>
+                    <button id="randomSeed" class="random-btn">🎲 随机</button>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas" width="1000" height="1000"></canvas>
+
+            <div class="stats-bar">
+                <div class="hp-bar">❤️ 生命 <span id="hpDisplay" class="hp-fill">5</span></div>
+                <div class="attr">
+                    <span>⚔️ 攻 <span id="atkDisplay">1</span></span>
+                    <span>🛡️ 防 <span id="defDisplay">1</span></span>
+                </div>
+                <div class="level-info">🏰 层数 <span id="levelDisplay">1</span>/5</div>
+                <div class="monster-count">👾 怪物 <span id="monsterCount">0</span>/15</div>
+                <button id="resetGame">🔄 重置本层</button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><span style="font-size:1.4rem;">🗡️</span> 剑(+1攻)</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🛡️</span> 盾(+1防)</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🧴</span> 血药(+1HP)</div>
+                <div class="legend-item"><span class="event-dot">❓</span> 随机事件</div>
+                <div class="legend-item"><span class="monster-dot"></span> 小怪物</div>
+                <div class="legend-item"><span class="big-monster-dot"></span> 大怪物</div>
+                <div class="legend-item"><span class="boss-dot"></span> Boss</div>
+                <div class="legend-item"><span class="stairs-dot"></span> 楼梯(下一层)</div>
+            </div>
+        </div>
+
+        <!-- 日志栏 -->
+        <div class="log-area">
+            <div class="log-header">📜 战斗日志</div>
+            <div class="log-content" id="logContent">
+                <div class="log-entry">🎮 游戏开始</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载所有JS模块 -->
+<script src="js/utils/rng.js"></script>
+<script src="js/utils/unionfind.js"></script>
+<script src="js/core/seed.js"></script>
+<script src="js/core/player.js"></script>
+<script src="js/core/monster.js"></script>
+<script src="js/core/maze.js"></script>
+<script src="js/systems/combat.js"></script>
+<script src="js/systems/event.js"></script>
+<script src="js/systems/log.js"></script>
+<script src="js/systems/score.js"></script>
+<script src="js/ui/renderer.js"></script>
+<script src="js/ui/modal.js"></script>
+<script src="js/ui/controls.js"></script>
+<script src="js/core/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
