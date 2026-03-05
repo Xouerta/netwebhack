@@ -12,7 +12,6 @@ import {MonsterAI} from "../ai/monsterAI.ts";
 import {BossAI} from "../ai/bossAI.ts";
 import {GameCombat} from "./GameCombat.ts";
 import {Seed} from "./Seed.ts";
-import {getCell, setCell} from "../utils/math.ts";
 import {EventSystem} from "../systems/EventSystem.ts";
 import {Controls} from "../ui/Controls.ts";
 import type {InventoryUI} from "../ui/InventoryUi.ts";
@@ -20,7 +19,7 @@ import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 import {SoundSystem} from "../systems/SoundSystem.ts";
 
 export class Game {
-    private state: GameState;
+    public readonly state: GameState;
     private currentSeed: string;
     private rngs: Record<string, Supplier<number>> | null;
     private renderer!: Renderer;
@@ -153,7 +152,7 @@ export class Game {
 
         if (added) {
             // 从地图上移除物品
-            setCell(this.state.maze, GameState.SIZE, row, col, 1);
+            this.state.maze.set(row, col, 1);
             this.state.stats.itemsCollected++;
 
             this.logSystem.addItem(
@@ -292,16 +291,16 @@ export class Game {
     }
 
     private isValidMove(row: number, col: number) {
-        if (row < 0 || row >= GameState.SIZE ||
-            col < 0 || col >= GameState.SIZE) return false;
-        return getCell(this.state.maze, GameState.SIZE, row, col) !== 0;
+        if (row < 0 || row >= this.state.size ||
+            col < 0 || col >= this.state.size) return false;
+        return this.state.maze.get(row, col) !== 0;
     }
 
     /**
      * 处理格子内容
      */
     private handleCellContent(row: number, col: number) {
-        const cell = getCell(this.state.maze, GameState.SIZE, row, col);
+        const cell = this.state.maze.get(row, col);
 
         if (cell >= 2 && cell <= 4) {
             // 物品 - 设置当前物品，等待回车拾取
@@ -312,7 +311,7 @@ export class Game {
             console.log('Item found at', row, col, 'type:', cell); // 调试用
         } else if (cell === 6) {
             // 随机事件
-            setCell(this.state.maze, GameState.SIZE, row, col, 1);
+            this.state.maze.set(row, col, 1);
             this.triggerRandomEvent();
         } else if (cell === 7) {
             // 楼梯

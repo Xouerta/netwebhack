@@ -1,7 +1,6 @@
 import {GameState} from "../core/GameState.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
-import {getCell} from "../utils/math.ts";
 
 export class MonsterAI {
     private readonly state: GameState;
@@ -161,9 +160,9 @@ export class MonsterAI {
      * 检查是否可以移动到指定位置
      */
     private canMoveTo(row: number, col: number, currentMonster: MobEntity, newMonsters: MobEntity[]) {
-        if (row < 1 || row >= GameState.SIZE - 1 ||
-            col < 1 || col >= GameState.SIZE - 1) return false;
-        if (getCell(this.state.maze, GameState.SIZE, row, col) !== 1) return false;
+        if (row < 1 || row >= this.state.size - 1 ||
+            col < 1 || col >= this.state.size - 1) return false;
+        if (this.state.maze.get(row, col) !== 1) return false;
         if (row === this.state.player.pos.row && col === this.state.player.pos.col) return false;
 
         const occupiedByNew = newMonsters.some(m => m.pos.row === row && m.pos.col === col);
@@ -174,8 +173,6 @@ export class MonsterAI {
         );
         if (occupiedByOld) return false;
 
-        if (row === this.state.stairsPos.row && col === this.state.stairsPos.col) return false;
-
-        return true;
+        return !(row === this.state.stairsPos.row && col === this.state.stairsPos.col);
     }
 }

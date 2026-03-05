@@ -4,10 +4,10 @@
  */
 import {GameState} from "./GameState.ts";
 import type {Supplier} from "../types.ts";
-import {MazeGenerator} from "./Maze.ts";
 import {MonsterGenerator} from "../entity/MobEntity.ts";
-import {setCell, shuffleArray} from "../utils/math.ts";
+import {shuffleArray} from "../utils/math.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
+import {MazeGenerator} from "./MazeGenerator.ts";
 
 export class GameLevel {
     private readonly state: GameState;
@@ -23,25 +23,25 @@ export class GameLevel {
     /**
      * 加载指定层
      */
-    loadLevel(level: number) {
+    public loadLevel(level: number) {
         // 生成迷宫
-        this.state.maze = MazeGenerator.generateLevel(level, this.rngs.maze);
+        const maze = MazeGenerator.generateLevel(this.state.size, level, this.rngs.maze);
 
         // 放置物品和事件
-        this.state.maze = MazeGenerator.placeItemsAndEvents(this.state.maze, level, this.rngs.item);
+        MazeGenerator.placeItemsAndEvents(maze, level, this.rngs.item);
 
         // 放置楼梯
-        const result = MazeGenerator.placeStairs(this.state.maze, this.rngs.item);
-        this.state.maze = result.grid;
+        const result = MazeGenerator.placeStairs(maze, this.rngs.item);
+        this.state.maze.change(result.maze);
         this.state.stairsPos = result.stairsPos;
 
         // 生成怪物
-        this.state.monsters = this._spawnMonsters(level);
+        this.state.monsters = this.spawnMonsters(level);
 
         // 重置玩家位置
         this.state.player.pos.row = 1;
         this.state.player.pos.col = 1;
-        setCell(this.state.maze, GameState.SIZE, 1, 1, 1);
+        this.state.maze.set(1, 1, 1);
 
         this.logSystem.addStairs(`🏰 进入第 ${level} 层`);
     }
@@ -49,7 +49,7 @@ export class GameLevel {
     /**
      * 生成怪物
      */
-    _spawnMonsters(level: number) {
+    private spawnMonsters(level: number) {
         if (level === GameState.TOTAL_LEVELS) {
             return this._spawnBoss(level);
         }

@@ -5,8 +5,7 @@
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import type {Position} from "../core/Position.ts";
-import {MazeGenerator} from "../core/Maze.ts";
-import {getCell} from "../utils/math.ts";
+import type {Maze} from "../core/Maze.ts";
 
 export class Renderer {
     private readonly canvas: HTMLCanvasElement;
@@ -15,20 +14,20 @@ export class Renderer {
     private readonly size: number
 
 
-    constructor(canvas: HTMLCanvasElement, cellSize = 25) {
+    public constructor(canvas: HTMLCanvasElement, size: number, cellSize = 25) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d')!;
         this.cellSize = cellSize;
-        this.size = MazeGenerator.SIZE;
+        this.size = size;
     }
 
     /**
      * 绘制整个游戏画面
      */
-    render(maze: Uint8Array, player: PlayerEntity, monsters: MobEntity[], _stairsPos: Position, gameWin: boolean, gameOver: boolean) {
+    public render(maze: Maze, player: PlayerEntity, monsters: MobEntity[], _stairsPos: Position, gameWin: boolean, gameOver: boolean) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this._renderMaze(maze);
+        this.renderMaze(maze);
         this._renderMonsters(monsters);
         this._renderPlayer(player);
 
@@ -43,14 +42,14 @@ export class Renderer {
     /**
      * 绘制迷宫底层
      */
-    _renderMaze(maze: Uint8Array) {
+    private renderMaze(maze: Maze) {
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
                 const x = c * this.cellSize;
                 const y = r * this.cellSize;
-                const cell = getCell(maze, this.size, r, c);
+                const cell = maze.get(r, c);
 
-                this._renderCell(x, y, cell);
+                this.renderCell(x, y, cell);
                 this._renderGridLine(x, y);
             }
         }
@@ -59,7 +58,7 @@ export class Renderer {
     /**
      * 绘制单个格子
      */
-    _renderCell(x: number, y: number, cell: number) {
+    private renderCell(x: number, y: number, cell: number) {
         if (cell === 0) {
             // 墙
             this.ctx.fillStyle = '#1d4f5a';
@@ -73,14 +72,14 @@ export class Renderer {
             this.ctx.fillStyle = '#9a8b76';
             this.ctx.fillRect(x + 2, y + 2, this.cellSize - 5, this.cellSize - 5);
 
-            this._renderItem(x, y, cell);
+            this.renderItem(x, y, cell);
         }
     }
 
     /**
      * 绘制道具
      */
-    _renderItem(x: number, y: number, cell: number) {
+    private renderItem(x: number, y: number, cell: number) {
         this.ctx.font = 'bold 16px "Segoe UI", "Courier New", monospace';
         this.ctx.fillStyle = '#000000';
         this.ctx.shadowBlur = 8;

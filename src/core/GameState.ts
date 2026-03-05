@@ -2,18 +2,18 @@ import {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {Stats} from "./Stats.ts";
 import type {Position} from "./Position.ts";
 import type {Supplier} from "../types.ts";
-import {getCell} from "../utils/math.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
+import {Maze} from "./Maze.ts";
 
 export class GameState {
-    public static readonly SIZE = 40;
     public static readonly TOTAL_LEVELS = 5;
     public static readonly MAX_MOB_CAP = 10;
     public static readonly MIN_BIG_MOB_DISTANCE = 10;
 
+    public readonly size: number = 40;
     public currentLevel: number;
     public player: PlayerEntity;
-    public maze: Uint8Array;
+    public readonly maze: Maze;
     public monsters: MobEntity[];
     public stairsPos: Position;
 
@@ -27,7 +27,7 @@ export class GameState {
     public constructor() {
         this.currentLevel = 1;
         this.player = new PlayerEntity();
-        this.maze = new Uint8Array(0);
+        this.maze = new Maze(this.size);
         this.monsters = [];
         this.stairsPos = {row: 38, col: 38};
 
@@ -51,7 +51,7 @@ export class GameState {
     public reset() {
         this.currentLevel = 1;
         this.player = new PlayerEntity();
-        this.maze = new Uint8Array(0);
+        this.maze.reset();
         this.monsters = [];
 
         this.gameWin = false;
@@ -94,9 +94,9 @@ export class GameState {
      */
     public getFreeCellsForMonsters() {
         let free = [];
-        for (let r = 1; r < GameState.SIZE - 1; r++) {
-            for (let c = 1; c < GameState.SIZE - 1; c++) {
-                if (getCell(this.maze, GameState.SIZE, r, c) === 1 &&
+        for (let r = 1; r < this.size - 1; r++) {
+            for (let c = 1; c < this.size - 1; c++) {
+                if (this.maze.get(r, c) === 1 &&
                     !(r === 1 && c === 1) &&
                     !(r === this.stairsPos.row && c === this.stairsPos.col)) {
                     free.push([r, c]);

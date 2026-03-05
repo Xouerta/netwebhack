@@ -6,10 +6,10 @@ import {InventoryUI} from "./ui/InventoryUi.ts";
 
 document.addEventListener('DOMContentLoaded', () => {
     // 初始化各个模块
-    const renderer = new Renderer(document.getElementById('gameCanvas') as HTMLCanvasElement, 25);
+    const game = new Game();
+    const renderer = new Renderer(document.getElementById('gameCanvas') as HTMLCanvasElement, game.state.size, 25);
     const modalManager = new ModalManager();
     const logSystem = new LogSystem(document.getElementById('logContent')!);
-    const game = new Game();
 
     // 初始化背包UI
     const inventoryUI = new InventoryUI('inventoryContainer', game);

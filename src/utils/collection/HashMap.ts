@@ -2,7 +2,7 @@ import type {Comparable} from "../../types.ts";
 
 export class HashMap<K extends Comparable, V> implements Map<K, V> {
     private readonly buckets: Map<string, { key: K, value: V }[]> = new Map();
-    private _size: number = 0;
+    private itemSize: number = 0;
 
     public set(key: K, value: V) {
         const hash = key.hashCode();
@@ -10,7 +10,7 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
 
         if (!bucket) {
             this.buckets.set(hash, [{key, value}]);
-            this._size++;
+            this.itemSize++;
             return this;
         }
 
@@ -21,7 +21,7 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
             bucket.push({key, value});
         }
 
-        this._size++;
+        this.itemSize++;
         return this;
     }
 
@@ -51,7 +51,7 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
             if (bucket.length === 0) {
                 this.buckets.delete(hash);
             }
-            this._size--;
+            this.itemSize--;
             return true;
         }
 
@@ -60,11 +60,11 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
 
     public clear(): void {
         this.buckets.clear();
-        this._size = 0;
+        this.itemSize = 0;
     }
 
     public get size(): number {
-        return this._size;
+        return this.itemSize;
     }
 
     public keySize(): number {
