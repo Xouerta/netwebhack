@@ -1,3 +1,5 @@
+import type {Supplier} from "../types.ts";
+
 export function clamp(value: number, min: number, max: number) {
     return Math.max(min, Math.min(max, value));
 }
@@ -32,4 +34,21 @@ export function createRNG(seedInt: number) {
         state = (state * 1103515245 + 12345) % 2147483647;
         return (state & 0x7fffffff) / 2147483647;
     };
+}
+
+export function shuffleArray<T>(array: T[], rng: Supplier<number>) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+export function getCell(array: Uint8Array, size: number, row: number, col: number): number {
+    return array[row * size + col];
+}
+
+export function setCell(array: Uint8Array, size: number, row: number, col: number, value: number): void {
+    array[row * size + col] = value;
 }

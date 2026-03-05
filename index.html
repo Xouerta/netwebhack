@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>地下城爬塔 · 背包系统</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <!-- 随机事件弹窗 -->
@@ -73,7 +73,8 @@
             <div class="header">
                 <div style="font-size: 1.8rem;">⚔️ 地下城·背包系统</div>
                 <div class="seed-area">
-                    <input type="text" id="seedInput" value="BAG-5LVL-001" maxlength="15">
+                    <label for="seedInput"></label><input type="text" id="seedInput" value="BAG-5LVL-001"
+                                                          maxlength="15">
                     <button id="applySeed">🌀 生成</button>
                     <button id="randomSeed" class="random-btn">🎲 随机</button>
                 </div>
@@ -113,28 +114,6 @@
         </div>
     </div>
 </div>
-
-<!-- 加载所有JS模块 (按依赖顺序) -->
-<script src="js/utils/rng.js"></script>
-<script src="js/utils/unionfind.js"></script>
-<script src="js/core/seed.js"></script>
-<script src="js/core/player.js"></script>
-<script src="js/core/monster.js"></script>
-<script src="js/core/maze.js"></script>
-<script src="js/core/gameState.js"></script>
-<script src="js/core/gameLevel.js"></script>
-<script src="js/core/gameCombat.js"></script>
-<script src="js/ai/monsterAI.js"></script>
-<script src="js/ai/bossAI.js"></script>
-<script src="js/systems/combat.js"></script>
-<script src="js/systems/event.js"></script>
-<script src="js/systems/log.js"></script>
-<script src="js/systems/score.js"></script>
-<script src="js/ui/renderer.js"></script>
-<script src="js/ui/modal.js"></script>
-<script src="js/ui/controls.js"></script>
-<script src="js/ui/inventory.js"></script>
-<script src="js/core/game.js"></script>
-<script src="js/main.js"></script>
+<script type="module" src="/src/main.ts"></script>
 </body>
 </html>
