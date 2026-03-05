@@ -379,3 +379,153 @@ canvas {
     text-align: center;
     margin: 1rem 0;
 }
+/* 背包相关样式 */
+.inventory-container {
+    width: 250px;
+    background: #0b2a33;
+    border-radius: 2rem;
+    padding: 1rem;
+    border: 2px solid #35828f;
+}
+
+.inventory-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.inventory-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ffd966;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #4a9eaa;
+    margin-bottom: 1rem;
+}
+
+.inventory-items {
+    min-height: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #124854;
+    border-radius: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.inventory-item {
+    background: #1f5f6b;
+    padding: 0.5rem;
+    margin-bottom: 0.3rem;
+    border-radius: 0.8rem;
+    color: white;
+    font-size: 1rem;
+    border-left: 4px solid #f1c40f;
+}
+
+.inventory-empty {
+    text-align: center;
+    color: #9bbac4;
+    padding: 1rem;
+    font-style: italic;
+}
+
+.inventory-hint {
+    font-size: 0.9rem;
+    color: #b8e2ed;
+    text-align: center;
+    margin-bottom: 0.8rem;
+    padding: 0.3rem;
+    background: #1a5b68;
+    border-radius: 2rem;
+}
+
+.inventory-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inventory-btn {
+    background: #2d7e91;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f0ffff;
+    cursor: pointer;
+    transition: 0.05s;
+    border: 1px solid #7fdae9;
+}
+
+.inventory-btn:hover {
+    background: #3a95a8;
+}
+
+.inventory-btn.drop {
+    background: #8f3e3e;
+    border-color: #e07b7b;
+}
+
+.inventory-btn.drop:hover {
+    background: #a54545;
+}
+
+/* 主面板布局 */
+.main-panel {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.game-area {
+    flex: 2;
+}
+
+.log-area {
+    flex: 1;
+    max-width: 300px;
+}
+/* 丢弃物品弹窗样式 */
+.drop-item-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 1rem 0;
+    background: #124854;
+    border-radius: 1rem;
+    padding: 0.5rem;
+}
+
+.drop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1f5f6b;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.8rem;
+    color: white;
+}
+
+.drop-item-empty {
+    text-align: center;
+    color: #9bbac4;
+    padding: 1rem;
+    font-style: italic;
+}
+
+.drop-btn {
+    background: #8f3e3e;
+    border: none;
+    border-radius: 1.5rem;
+    padding: 0.4rem 1rem;
+    color: white;
+    cursor: pointer;
+    border: 1px solid #e07b7b;
+    transition: 0.05s;
+}
+
+.drop-btn:hover {
+    background: #a54545;
+}
