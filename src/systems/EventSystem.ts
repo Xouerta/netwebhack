@@ -2,36 +2,42 @@
  * 游戏事件系统模块
  * 处理随机事件的触发和执行
  */
+import type {BiConsumer, Consumer, Supplier} from "../types.ts";
+import type {ModalManager} from "../ui/Modal.ts";
+import type {PlayerEntity} from "../entity/PlayerEntity.ts";
+import {MobEntity} from "../entity/MobEntity.ts";
+import type {Stats} from "../core/Stats.ts";
+import type {GameEvent} from "./GameEvent.ts";
 
-export const EventSystem = {
+export class EventSystem {
     /**
      * 事件库
      */
-    events: [
+    public static readonly EVENTS: GameEvent[] = [
         {
             title: "💀 幽灵的考验",
             desc: "一个幽灵挡住了去路，它说：'回答我，你选择力量还是生命？'",
             options: [
                 {
                     text: "⚔️ 接受力量 (-1生命, +2攻击)",
-                    effect: (p, m, log) => {
-                        p.hp -= 1;
+                    effect: (p, _, log) => {
+                        p.takeDamage(1);
                         p.atk += 2;
                         log("💀 接受了力量，生命-1，攻击+2", 'event');
                     }
                 },
                 {
                     text: "🛡️ 祈求守护 (-1生命, +2防御)",
-                    effect: (p, m, log) => {
-                        p.hp -= 1;
+                    effect: (p, _, log) => {
+                        p.takeDamage(1);
                         p.def += 2;
                         log("💀 祈求守护，生命-1，防御+2", 'event');
                     }
                 },
                 {
                     text: "🍎 献上食物 (恢复2生命)",
-                    effect: (p, m, log) => {
-                        p.hp = Math.min(p.maxHp, p.hp + 2);
+                    effect: (p, _, log) => {
+                        p.heal(2);
                         log("🍎 献上食物，生命+2", 'event');
                     }
                 }
@@ -43,7 +49,7 @@ export const EventSystem = {
             options: [
                 {
                     text: "🏃 快速逃离 (不改变)",
-                    effect: (p, m, log) => {
+                    effect: (_p, _m, log) => {
                         log("🏃 快速逃离，什么都没发生", 'event');
                     }
                 },
@@ -52,8 +58,8 @@ export const EventSystem = {
                     effect: (p, m, log) => {
                         p.atk++;
                         // 召唤大怪
-                        const newMonster = new Monster(
-                            Date.now(), p.row, p.col, 'big', 3, 3, 5
+                        const newMonster = new MobEntity(
+                            p.pos.row, p.pos.col, 'big', 3, 3, 5
                         );
                         m.push(newMonster);
                         log("💪 摧毁陷阱，攻击+1，但召唤了一只大怪", 'event');
@@ -83,7 +89,7 @@ export const EventSystem = {
             options: [
                 {
                     text: "💙 喝一大口 (随机属性+1, 但可能中毒)",
-                    effect: (p, m, log) => {
+                    effect: (p, _m, log) => {
                         if (Math.random() < 0.5) {
                             p.atk++;
                             log("💙 攻击+1", 'event');
@@ -92,21 +98,21 @@ export const EventSystem = {
                             log("💙 防御+1", 'event');
                         }
                         if (Math.random() < 0.3) {
-                            p.hp = Math.max(1, p.hp - 2);
+                            p.takeDamage(2);
                             log("😵 中毒了，生命-2", 'event');
                         }
                     }
                 },
                 {
                     text: "🧴 装瓶带走 (获得1瓶血药)",
-                    effect: (p, m, log) => {
-                        p.hp = Math.min(p.maxHp, p.hp + 1);
+                    effect: (p, _m, log) => {
+                        p.heal(1);
                         log("🧴 获得1瓶血药，生命+1", 'event');
                     }
                 },
                 {
                     text: "🚶 无视它",
-                    effect: (p, m, log) => {
+                    effect: (_p, _m, log) => {
                         log("🚶 无视泉水", 'event');
                     }
                 }
@@ -118,9 +124,9 @@ export const EventSystem = {
             options: [
                 {
                     text: "🩸 献祭2生命 +2攻击",
-                    effect: (p, m, log) => {
-                        if (p.hp > 2) {
-                            p.hp -= 2;
+                    effect: (p, _m, log) => {
+                        if (p.getHealth() > 2) {
+                            p.takeDamage(2);
                             p.atk += 2;
                             log("🩸 献祭2生命，攻击+2", 'event');
                         }
@@ -128,18 +134,18 @@ export const EventSystem = {
                 },
                 {
                     text: "⚡ 献祭1攻击 +2生命",
-                    effect: (p, m, log) => {
+                    effect: (p, _m, log) => {
                         if (p.atk > 1) {
                             p.atk--;
-                            p.maxHp += 2;
-                            p.hp += 2;
+                            p.setMaxHealth(p.getMaxHealth() + 2);
+                            p.heal(2);
                             log("⚡ 献祭1攻击，生命上限+2，生命+2", 'event');
                         }
                     }
                 },
                 {
                     text: "🚫 离开",
-                    effect: (p, m, log) => {
+                    effect: (_p, _m, log) => {
                         log("🚫 离开石碑", 'event');
                     }
                 }
@@ -151,9 +157,9 @@ export const EventSystem = {
             options: [
                 {
                     text: "🗡️ 买剑 (1攻击, 但花费2生命)",
-                    effect: (p, m, log) => {
-                        if (p.hp > 2) {
-                            p.hp -= 2;
+                    effect: (p, _m, log) => {
+                        if (p.getHealth() > 2) {
+                            p.takeDamage(2);
                             p.atk++;
                             log("🗡️ 购买剑，攻击+1，生命-2", 'event');
                         }
@@ -161,9 +167,9 @@ export const EventSystem = {
                 },
                 {
                     text: "🛡️ 买盾 (1防御, 但花费2生命)",
-                    effect: (p, m, log) => {
-                        if (p.hp > 2) {
-                            p.hp -= 2;
+                    effect: (p, _m, log) => {
+                        if (p.getHealth() > 2) {
+                            p.takeDamage(2);
                             p.def++;
                             log("🛡️ 购买盾，防御+1，生命-2", 'event');
                         }
@@ -171,7 +177,7 @@ export const EventSystem = {
                 },
                 {
                     text: "💰 贿赂 (随机消失一只小怪)",
-                    effect: (p, m, log) => {
+                    effect: (_p, m, log) => {
                         const smallMonsters = m.filter(mon => mon.type === 'small');
                         if (smallMonsters.length > 0) {
                             const idx = m.findIndex(mon => mon.type === 'small');
@@ -196,12 +202,12 @@ export const EventSystem = {
                         if (Math.random() < 0.5) {
                             p.atk++;
                             p.def++;
-                            p.maxHp++;
-                            p.hp++;
+                            p.setMaxHealth(p.getMaxHealth() + 1);
+                            p.heal(1);
                             log("🙏 祈祷应验！全属性+1", 'event');
                         } else {
-                            const newMonster = new Monster(
-                                Date.now(), p.row, p.col, 'big', 4, 4, 8
+                            const newMonster = new MobEntity(
+                                p.pos.row, p.pos.col, 'big', 4, 4, 8
                             );
                             m.push(newMonster);
                             log("🙏 祈祷招来了灾祸！一只大怪出现", 'event');
@@ -210,8 +216,8 @@ export const EventSystem = {
                 },
                 {
                     text: "💰 献祭 (失去2生命, 获得1攻击1防御)",
-                    effect: (p, m, log) => {
-                        p.hp = Math.max(1, p.hp - 2);
+                    effect: (p, _m, log) => {
+                        p.takeDamage(2);
                         p.atk++;
                         p.def++;
                         log("💰 献祭2生命，获得1攻击1防御", 'event');
@@ -219,26 +225,32 @@ export const EventSystem = {
                 },
                 {
                     text: "🚶 离开",
-                    effect: (p, m, log) => {
+                    effect: (_p, _m, log) => {
                         log("🚶 离开神龛", 'event');
                     }
                 }
             ]
         }
-    ],
+    ];
 
     /**
      * 获取随机事件
      */
-    getRandomEvent(rng) {
-        const index = Math.floor(rng() * this.events.length);
-        return this.events[index];
-    },
+    public static getRandomEvent(rng: Supplier<number>) {
+        const index = Math.floor(rng() * this.EVENTS.length);
+        return this.EVENTS[index];
+    }
 
     /**
      * 触发事件
      */
-    triggerEvent(modalManager, player, monsters, stats, addLog, callback) {
+    public static triggerEvent(
+        modalManager: ModalManager,
+        player: PlayerEntity,
+        monsters: MobEntity[],
+        stats: Stats,
+        addLog: BiConsumer<string, string>,
+        callback: Consumer<string>) {
         const evt = this.getRandomEvent(Math.random);
 
         modalManager.showEventModal(
@@ -248,15 +260,11 @@ export const EventSystem = {
                 text: opt.text,
                 onClick: () => {
                     opt.effect(player, monsters, addLog);
-                    if (player.hp <= 0) {
-                        callback('gameOver');
-                    } else {
-                        callback('continue');
-                    }
+                    callback(player.isDead() ? 'gameOver' : 'continue');
                 }
             }))
         );
 
         stats.eventsTriggered++;
     }
-};
+}

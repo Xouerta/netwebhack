@@ -3,9 +3,13 @@ import {clamp} from "../utils/math.ts";
 import type {NbtSerializable} from "../nbt/NbtSerializable.ts";
 import {type NbtCompound} from "../nbt/element/NbtCompound.ts";
 import {NbtTypeId} from "../nbt/NbtType.ts";
+import {AtomicInteger} from "../utils/collection/AtomicInteger.ts";
 
 export abstract class Entity implements NbtSerializable {
-    public pos: Position;
+    private static readonly NEXT_ID = new AtomicInteger();
+
+    public readonly id = Entity.NEXT_ID.getAndIncrement();
+    public readonly pos: Position;
     private maxHealth: number;
     private health: number;
 

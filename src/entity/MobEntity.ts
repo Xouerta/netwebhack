@@ -6,12 +6,10 @@ import {Entity} from "./Entity.ts";
 import type {Supplier} from "../types.ts";
 
 export class MobEntity extends Entity {
-    public readonly id: string;
     public readonly type: string;
 
-    public constructor(id: string, row: number, col: number, type: string, atk: number, def: number, hp: number) {
+    public constructor(row: number, col: number, type: string, atk: number, def: number, hp: number) {
         super(row, col, hp, atk, def);
-        this.id = id;
         this.type = type; // 'small', 'big', 'boss'
     }
 
@@ -38,18 +36,18 @@ export class MobEntity extends Entity {
      * 克隆怪物（用于保存状态）
      */
     public clone() {
-        return new MobEntity(this.id, this.pos.row, this.pos.col, this.type, this.atk, this.def, this.getHealth());
+        return new MobEntity(this.pos.row, this.pos.col, this.type, this.atk, this.def, this.getHealth());
     }
 }
 
 /**
  * 怪物生成器模块
  */
-export const MonsterGenerator = {
+export class MonsterGenerator {
     /**
      * 根据层数生成怪物属性
      */
-    generateStats(level: number, type: string, rng: Supplier<number>) {
+    public static generateStats(level: number, type: string, rng: Supplier<number>) {
         const isBig = type === 'big';
         const isBoss = type === 'boss';
 
@@ -72,13 +70,13 @@ export const MonsterGenerator = {
                 hp: Math.min(2 + level + Math.floor(rng() * 3), 10)
             };
         }
-    },
+    }
 
     /**
      * 生成怪物
      */
-    spawn(level: number, type: string, row: number, col: number, id: string, rng: Supplier<number>) {
+    public static spawn(level: number, type: string, row: number, col: number, rng: Supplier<number>) {
         const stats = this.generateStats(level, type, rng);
-        return new MobEntity(id, row, col, type, stats.atk, stats.def, stats.hp);
+        return new MobEntity(row, col, type, stats.atk, stats.def, stats.hp);
     }
-};
+}

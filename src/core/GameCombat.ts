@@ -1,14 +1,10 @@
-/**
- * 战斗处理模块
- * 处理玩家与怪物的战斗逻辑
- */
-import type {LogSystem} from "../systems/log.ts";
 import type {GameState} from "./GameState.ts";
-import type {ModalManager} from "../ui/modal.ts";
-import type {InventoryUI} from "../ui/inventory.ts";
+import type {LogSystem} from "../systems/LogSystem.ts";
+import type {ModalManager} from "../ui/Modal.ts";
+import type {InventoryUI} from "../ui/InventoryUi.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
-import {CombatSystem} from "../systems/combat.ts";
-import {ScoreSystem} from "../systems/score.ts";
+import {CombatSystem} from "../systems/Combat.ts";
+import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 
 export class GameCombat {
     private readonly state: GameState;
@@ -16,7 +12,7 @@ export class GameCombat {
     private readonly modalManager: ModalManager;
     private readonly inventoryUI: InventoryUI;
 
-    constructor(gameState: GameState, logSystem: LogSystem, modalManager: ModalManager, inventoryUI: InventoryUI) {
+    public constructor(gameState: GameState, logSystem: LogSystem, modalManager: ModalManager, inventoryUI: InventoryUI) {
         this.state = gameState;
         this.logSystem = logSystem;
         this.modalManager = modalManager;
@@ -26,7 +22,7 @@ export class GameCombat {
     /**
      * 处理战斗
      */
-    handleCombat(mob: MobEntity) {
+    public handleCombat(mob: MobEntity) {
         if (this.state.inCombat) return;
         this.state.inCombat = true;
 

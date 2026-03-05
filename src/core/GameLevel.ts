@@ -94,7 +94,7 @@ export class GameLevel {
         for (let i = 0; i < bigMonsterIndices.length; i++) {
             const idx = bigMonsterIndices[i];
             const [r, c] = shuffledFar[idx];
-            const monster = MonsterGenerator.spawn(level, 'big', r, c, `big_${i}`, this.rngs.monster);
+            const monster = MonsterGenerator.spawn(level, 'big', r, c, this.rngs.monster);
             mobs.push(monster);
             bigMonstersPlaced++;
         }
@@ -117,7 +117,7 @@ export class GameLevel {
 
         for (let i = 0; i < smallMonsterCount && i < shuffledRemaining.length; i++) {
             const [r, c] = shuffledRemaining[i];
-            const monster = MonsterGenerator.spawn(level, 'small', r, c, `small_${i}`, this.rngs.monster);
+            const monster = MonsterGenerator.spawn(level, 'small', r, c, this.rngs.monster);
             mobs.push(monster);
         }
 
@@ -140,7 +140,7 @@ export class GameLevel {
         const randomIndex = Math.floor(this.rngs.monster() * candidates.length);
         const [r, c] = candidates[randomIndex];
 
-        const boss = MonsterGenerator.spawn(level, 'boss', r, c, 'boss', this.rngs.monster);
+        const boss = MonsterGenerator.spawn(level, 'boss', r, c, this.rngs.monster);
         return [boss];
     }
 

@@ -2,14 +2,15 @@
  * 弹窗管理器模块
  * 管理所有弹窗的显示和交互
  */
-import {type Score, ScoreSystem} from "../systems/Score.ts";
+import {type Score} from "../systems/score/Score.ts";
 import type {Consumer} from "../types.ts";
+import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 
 export class ModalManager {
-    private eventModal: HTMLElement;
-    private confirmModal: HTMLElement;
+    private readonly eventModal: HTMLElement;
+    private readonly confirmModal: HTMLElement;
     private gameOverModal: HTMLElement;
-    private dropItemModal: HTMLElement;
+    private readonly dropItemModal: HTMLElement;
     private modalTitle: HTMLElement;
     private modalDesc: HTMLElement;
     private modalButtons: HTMLElement;
@@ -17,12 +18,13 @@ export class ModalManager {
     private confirmNo: HTMLElement;
     private dropItemList: HTMLElement;
     private confirmMessage: HTMLElement;
-    private dropItemConfirm: HTMLElement;
+    private readonly dropItemConfirm: HTMLElement;
     private dropItemCancel: HTMLElement;
-    private eventCallback: null | Consumer<any>;
-    private confirmCallback: null | Consumer<any>;
 
-    constructor() {
+    private eventCallback: null | Consumer<string>;
+    private confirmCallback: null | Consumer<boolean>;
+
+    public constructor() {
         this.eventModal = document.getElementById('eventModal')!;
         this.confirmModal = document.getElementById('confirmModal')!;
         this.gameOverModal = document.getElementById('gameOverModal')!;
@@ -43,13 +45,13 @@ export class ModalManager {
         this.eventCallback = null;
         this.confirmCallback = null;
 
-        this._setupEventListeners();
+        this.setupEventListeners();
     }
 
     /**
      * 设置弹窗事件监听
      */
-    _setupEventListeners() {
+    private setupEventListeners() {
         window.onclick = (e) => {
             if (e.target === this.eventModal) {
                 this.eventModal.style.display = 'none';
@@ -74,7 +76,7 @@ export class ModalManager {
     /**
      * 显示事件弹窗
      */
-    showEventModal(title: string, desc: string, options: any) {
+    public showEventModal(title: string, desc: string, options: any) {
         this.modalTitle.innerText = title;
         this.modalDesc.innerText = desc;
 
@@ -100,7 +102,7 @@ export class ModalManager {
     /**
      * 显示确认弹窗
      */
-    showConfirmModal(message: string, callback: Consumer<any>) {
+    public showConfirmModal(message: string, callback: Consumer<any>) {
         this.confirmMessage.innerText = message;
         this.confirmCallback = callback;
 
@@ -128,7 +130,7 @@ export class ModalManager {
      * @param {Array} inventory - 背包物品数组
      * @param {Function} onDrop - 丢弃回调函数，接收物品索引
      */
-    showDropItemModal(inventory: Array<any>, onDrop: Function) {
+    public showDropItemModal(inventory: Array<any>, onDrop: Function) {
         if (!this.dropItemModal) {
             console.error('丢弃物品弹窗元素不存在');
             return;
@@ -147,7 +149,7 @@ export class ModalManager {
                 itemDiv.className = 'drop-item';
 
                 const nameSpan = document.createElement('span');
-                nameSpan.textContent = this._getItemDisplayName(item.type);
+                nameSpan.textContent = this.getItemDisplayName(item.type);
 
                 const dropBtn = document.createElement('button');
                 dropBtn.className = 'drop-btn';
@@ -184,8 +186,8 @@ export class ModalManager {
      * @param {Function} onConfirm - 确认回调
      * @param {Function} onCancel - 取消回调
      */
-    showPickupConfirmModal(itemType: string, onConfirm: Function, onCancel: Function) {
-        const itemName = this._getItemDisplayName(itemType);
+    public showPickupConfirmModal(itemType: string, onConfirm: Function, onCancel: Function) {
+        const itemName = this.getItemDisplayName(itemType);
         this.showConfirmModal(
             `是否拾取 ${itemName}？\n(按回车确认，按ESC取消)`,
             (confirmed) => {
@@ -201,7 +203,7 @@ export class ModalManager {
     /**
      * 获取物品显示名称
      */
-    _getItemDisplayName(itemType: string) {
+    private getItemDisplayName(itemType: string) {
         const names: Record<string, string> = {
             'sword': '🗡️ 剑',
             'shield': '🛡️ 盾',
@@ -216,27 +218,22 @@ export class ModalManager {
     /**
      * 显示游戏结束弹窗
      */
-    showGameOverModal(score: Score, isVictory: boolean) {
-        // 假设 ScoreSystem 是全局可用的
-        if (ScoreSystem) {
-            ScoreSystem.updateModal(score, isVictory);
-        } else {
-            console.error('ScoreSystem not found');
-        }
+    public showGameOverModal(score: Score, isVictory: boolean) {
+        ScoreSystem.updateModal(score, isVictory);
         this.gameOverModal.style.display = 'flex';
     }
 
     /**
      * 关闭游戏结束弹窗
      */
-    closeGameOverModal() {
+    public closeGameOverModal() {
         this.gameOverModal.style.display = 'none';
     }
 
     /**
      * 隐藏所有弹窗
      */
-    hideAll() {
+    public hideAll() {
         this.eventModal.style.display = 'none';
         this.confirmModal.style.display = 'none';
         this.gameOverModal.style.display = 'none';

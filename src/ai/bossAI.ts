@@ -61,7 +61,7 @@ export class BossAI {
         if (occupiedByNew) return false;
 
         const occupiedByOld = this.state.monsters.some(
-            m => m !== currentMonster && m.row === row && m.col === col
+            m => m !== currentMonster && m.pos.row === row && m.pos.col === col
         );
         if (occupiedByOld) return false;
 

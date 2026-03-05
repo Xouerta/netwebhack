@@ -3,6 +3,7 @@ import type {Stats} from "./Stats.ts";
 import type {Position} from "./Position.ts";
 import type {Supplier} from "../types.ts";
 import {getCell} from "../utils/math.ts";
+import type {MobEntity} from "../entity/MobEntity.ts";
 
 export class GameState {
     public static readonly SIZE = 40;
@@ -13,14 +14,14 @@ export class GameState {
     public currentLevel: number;
     public player: PlayerEntity;
     public maze: Uint8Array;
-    public monsters: any[];
+    public monsters: MobEntity[];
     public stairsPos: Position;
 
     public gameWin: boolean;
     public gameOver: boolean;
     public waitingForEvent: boolean;
     public inCombat: boolean;
-    public currentItemCell: null|any;
+    public currentItemCell: null | any;
     public stats: Stats;
 
     public constructor() {

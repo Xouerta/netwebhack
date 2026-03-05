@@ -43,8 +43,8 @@ export class MonsterAI {
      */
     private checkAdjacentMonsters() {
         const adjacentMonsters = this.state.monsters.filter(m =>
-            Math.abs(m.row - this.state.player.pos.row) +
-            Math.abs(m.col - this.state.player.pos.col) === 1
+            Math.abs(m.pos.row - this.state.player.pos.row) +
+            Math.abs(m.pos.col - this.state.player.pos.col) === 1
         );
 
         return adjacentMonsters.length > 0 ? adjacentMonsters[0] : null;
@@ -170,7 +170,7 @@ export class MonsterAI {
         if (occupiedByNew) return false;
 
         const occupiedByOld = this.state.monsters.some(
-            m => m !== currentMonster && m.row === row && m.col === col
+            m => m !== currentMonster && m.pos.row === row && m.pos.col === col
         );
         if (occupiedByOld) return false;
 

@@ -4,8 +4,8 @@
  */
 import {GameState} from "./GameState.ts";
 import type {Supplier} from "../types.ts";
-import type {Renderer} from "../ui/renderer.ts";
-import type {ModalManager} from "../ui/modal.ts";
+import type {Renderer} from "../ui/Renderer.ts";
+import type {ModalManager} from "../ui/Modal.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {GameLevel} from "./GameLevel.ts";
 import {MonsterAI} from "../ai/monsterAI.ts";
@@ -13,10 +13,11 @@ import {BossAI} from "../ai/bossAI.ts";
 import {GameCombat} from "./GameCombat.ts";
 import {Seed} from "./Seed.ts";
 import {getCell, setCell} from "../utils/math.ts";
-import {ScoreSystem} from "../systems/Score.ts";
-import {EventSystem} from "../systems/gameEvent.ts";
+import {EventSystem} from "../systems/EventSystem.ts";
 import {Controls} from "../ui/Controls.ts";
 import type {InventoryUI} from "../ui/InventoryUi.ts";
+import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
+import {SoundSystem} from "../systems/SoundSystem.ts";
 
 export class Game {
     private state: GameState;
@@ -44,7 +45,7 @@ export class Game {
     /**
      * 初始化游戏
      */
-    init(renderer: Renderer, modalManager: ModalManager, logSystem: LogSystem, inventoryUI: InventoryUI) {
+    public init(renderer: Renderer, modalManager: ModalManager, logSystem: LogSystem, inventoryUI: InventoryUI) {
         this.renderer = renderer;
         this.modalManager = modalManager;
         this.logSystem = logSystem;
@@ -64,7 +65,7 @@ export class Game {
     /**
      * 加载世界
      */
-    loadWorld(seedStr: string) {
+    public loadWorld(seedStr: string) {
         this.currentSeed = Seed.normalize(seedStr);
         this.rngs = Seed.createRNGs(this.currentSeed);
 
@@ -76,27 +77,27 @@ export class Game {
         this.logSystem.clear();
         this.levelManager.loadLevel(1);
 
-        this._render();
+        this.render();
     }
 
     /**
      * 移动玩家
      */
-    movePlayer(dr: number, dc: number) {
-        if (this._cannotAct()) return;
+    public movePlayer(dr: number, dc: number) {
+        if (this.cannotAct()) return;
 
         let nr = this.state.player.pos.row + dr;
         let nc = this.state.player.pos.col + dc;
 
-        if (!this._isValidMove(nr, nc)) return;
+        if (!this.isValidMove(nr, nc)) return;
 
         // 检查怪物
         const monsterAtTarget = this.state.monsters.find(
-            m => m.row === nr && m.col === nc
+            m => m.pos.row === nr && m.pos.col === nc
         );
         if (monsterAtTarget) {
             this.combatSystem.handleCombat(monsterAtTarget);
-            this._render();
+            this.render();
             return;
         }
 
@@ -105,20 +106,20 @@ export class Game {
         this.state.player.moveTo(nr, nc);
 
         // 处理格子内容
-        this._handleCellContent(nr, nc);
+        this.handleCellContent(nr, nc);
 
-        this._updateAndRender();
+        this.updateAndRender();
 
         // 怪物移动
         if (!this.state.waitingForEvent && !this.state.gameWin && !this.state.gameOver) {
-            this._moveMonsters();
+            this.moveMonsters();
         }
     }
 
     /**
      * 移动所有怪物
      */
-    _moveMonsters() {
+    private moveMonsters() {
         const adjacentMonster = this.monsterAI.moveAllMonsters();
 
         if (adjacentMonster && !this.state.inCombat &&
@@ -126,14 +127,14 @@ export class Game {
             this.combatSystem.handleCombat(adjacentMonster);
         }
 
-        this._render();
+        this.render();
     }
 
     /**
      * 拾取物品
      */
-    pickupCurrentItem() {
-        if (this._cannotAct()) return false;
+    public pickupCurrentItem() {
+        if (this.cannotAct()) return false;
         if (!this.state.currentItemCell) {
             this.logSystem.addItem('⏎ 没有物品可拾取');
             return false;
@@ -164,7 +165,7 @@ export class Game {
             // 更新UI
             this.inventoryUI.updateInventory(this.state.player.getInventory());
             this.state.updateUI();
-            this._render();
+            this.render();
             return true;
         }
 
@@ -174,13 +175,14 @@ export class Game {
     /**
      * 使用血药
      */
-    usePotion() {
-        if (this._cannotAct()) return false;
+    public usePotion() {
+        if (this.cannotAct()) return false;
 
         const used = this.state.player.usePotion();
         if (used) {
             this.logSystem.addItem('🧴 使用血药，生命+1');
-            this._updateAndRender();
+            SoundSystem.play('/sound/bottle_empty.ogg');
+            this.updateAndRender();
             return true;
         } else {
             this.logSystem.addItem('❌ 背包中没有血药');
@@ -191,13 +193,13 @@ export class Game {
     /**
      * 使用剑
      */
-    useSword() {
-        if (this._cannotAct()) return false;
+    public useSword() {
+        if (this.cannotAct()) return false;
 
         const used = this.state.player.useSword();
         if (used) {
             this.logSystem.addItem('🗡️ 使用剑，攻击+1');
-            this._updateAndRender();
+            this.updateAndRender();
             return true;
         } else {
             this.logSystem.addItem('❌ 背包中没有剑');
@@ -208,13 +210,13 @@ export class Game {
     /**
      * 使用盾
      */
-    useShield() {
-        if (this._cannotAct()) return false;
+    public useShield() {
+        if (this.cannotAct()) return false;
 
         const used = this.state.player.useShield();
         if (used) {
             this.logSystem.addItem('🛡️ 使用盾，防御+1');
-            this._updateAndRender();
+            this.updateAndRender();
             return true;
         } else {
             this.logSystem.addItem('❌ 背包中没有盾');
@@ -225,8 +227,8 @@ export class Game {
     /**
      * 打开丢弃物品界面
      */
-    openDropItemModal() {
-        if (this._cannotAct()) return;
+    public openDropItemModal() {
+        if (this.cannotAct()) return;
 
         const inventory = this.state.player.getInventory();
         this.modalManager.showDropItemModal(inventory, (index: number) => {
@@ -236,7 +238,7 @@ export class Game {
                     `🗑️ 丢弃 ${this.state.player.getItemDisplayName(dropped.type)}`
                 );
                 this.inventoryUI.updateInventory(this.state.player.getInventory());
-                this._render();
+                this.render();
             }
         });
     }
@@ -244,7 +246,7 @@ export class Game {
     /**
      * 尝试下楼
      */
-    tryGoDown() {
+    public tryGoDown() {
         if (this.state.currentLevel === GameState.TOTAL_LEVELS) {
             this.logSystem.addStairs("⚠️ 最后一层，无法下楼！必须击败Boss！");
             return;
@@ -261,7 +263,7 @@ export class Game {
                 if (confirmed) {
                     const success = this.levelManager.nextLevel();
                     if (success) {
-                        this._updateAndRender();
+                        this.updateAndRender();
                     }
                 } else {
                     this.logSystem.addStairs("🚫 取消下楼");
@@ -273,25 +275,23 @@ export class Game {
     /**
      * 重置玩家位置
      */
-    resetPlayer() {
+    public resetPlayer() {
         if (this.state.gameOver || this.state.gameWin) {
             this.loadWorld(this.currentSeed);
         } else {
             this.state.player.reset();
             this.logSystem.addStairs("🔄 重置到起点");
             this.inventoryUI.updateInventory(this.state.player.getInventory());
-            this._render();
+            this.render();
         }
     }
 
-    // ========== 私有辅助方法 ==========
-
-    _cannotAct() {
+    public cannotAct() {
         return this.state.gameWin || this.state.gameOver ||
             this.state.waitingForEvent || this.state.inCombat;
     }
 
-    _isValidMove(row: number, col: number) {
+    private isValidMove(row: number, col: number) {
         if (row < 0 || row >= GameState.SIZE ||
             col < 0 || col >= GameState.SIZE) return false;
         return getCell(this.state.maze, GameState.SIZE, row, col) !== 0;
@@ -300,7 +300,7 @@ export class Game {
     /**
      * 处理格子内容
      */
-    _handleCellContent(row: number, col: number) {
+    private handleCellContent(row: number, col: number) {
         const cell = getCell(this.state.maze, GameState.SIZE, row, col);
 
         if (cell >= 2 && cell <= 4) {
@@ -313,14 +313,14 @@ export class Game {
         } else if (cell === 6) {
             // 随机事件
             setCell(this.state.maze, GameState.SIZE, row, col, 1);
-            this._triggerRandomEvent();
+            this.triggerRandomEvent();
         } else if (cell === 7) {
             // 楼梯
             this.tryGoDown();
         }
     }
 
-    _triggerRandomEvent() {
+    private triggerRandomEvent() {
         this.state.waitingForEvent = true;
 
         EventSystem.triggerEvent(
@@ -338,18 +338,18 @@ export class Game {
                     this.modalManager.showGameOverModal(score, false);
                 }
                 this.state.waitingForEvent = false;
-                this._updateAndRender();
+                this.updateAndRender();
             }
         );
     }
 
-    _updateAndRender() {
+    private updateAndRender() {
         this.state.updateUI();
         this.inventoryUI.updateInventory(this.state.player.getInventory());
-        this._render();
+        this.render();
     }
 
-    _render() {
+    private render() {
         this.renderer.render(
             this.state.maze,
             this.state.player,

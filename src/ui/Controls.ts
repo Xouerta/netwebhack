@@ -24,13 +24,12 @@ export class Controls {
      */
     _handleKeyDown(e: KeyboardEvent) {
         const key = e.code;
-        e.preventDefault();
 
         // 方向键处理
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyD', 'KeyA'].includes(key)) {
             e.preventDefault();
 
-            if (this.game._cannotAct()) return;
+            if (this.game.cannotAct()) return;
 
             let dr = 0, dc = 0;
             if (key === 'ArrowUp' || key === 'KeyW') dr = -1;
@@ -45,7 +44,7 @@ export class Controls {
         else if (key === 'Enter' || key === 'NumpadEnter') {
             e.preventDefault();
             console.log('Enter key pressed'); // 调试用
-            if (this.game._cannotAct()) {
+            if (this.game.cannotAct()) {
                 console.log('Cannot act'); // 调试用
                 return;
             }
@@ -56,7 +55,7 @@ export class Controls {
         // 数字键使用物品（1-3）
         else if (key >= '1' && key <= '3') {
             e.preventDefault();
-            if (this.game._cannotAct()) return;
+            if (this.game.cannotAct()) return;
 
             const num = parseInt(key);
             // 1: 血药, 2: 剑, 3: 盾
@@ -72,7 +71,7 @@ export class Controls {
         // D键打开丢弃物品界面
         else if (key === 'd' || key === 'D') {
             e.preventDefault();
-            if (this.game._cannotAct()) return;
+            if (this.game.cannotAct()) return;
             this.game.openDropItemModal();
         }
     }

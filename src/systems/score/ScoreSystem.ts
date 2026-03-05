@@ -1,44 +1,10 @@
-/**
- * 分数计算系统模块
- * 计算游戏结束时的详细分数
- */
-import type {PlayerEntity} from "../entity/PlayerEntity.ts";
-import type {Stats} from "../core/Stats.ts";
+import type {PlayerEntity} from "../../entity/PlayerEntity.ts";
+import type {Stats} from "../../core/Stats.ts";
+import type {Score} from "./Score.ts";
 
-export interface Score {
-    baseScore: number;
-    smallKillScore: number;
-    bigKillScore: number;
-    bossScore: number;
-    atkScore: number;
-    defScore: number;
-    hpScore: number;
-    itemScore: number;
-    stepScore: number;
-    eventScore: number;
-    levelScore: number;
-    total: number;
-    details: ScoreDetails;
-}
 
-export interface ScoreDetails {
-    smallKills: number;
-    bigKills: number;
-    bossKilled: boolean;
-    atk: number;
-    def: number;
-    hp: number;
-    items: number;
-    steps: number;
-    events: number;
-    level: number;
-}
-
-export const ScoreSystem = {
-    /**
-     * 计算总分
-     */
-    calculate(player: PlayerEntity, stats: Stats, currentLevel: number): Score {
+export class ScoreSystem {
+    public static calculate(player: PlayerEntity, stats: Stats, currentLevel: number): Score {
         const baseScore = 100;
         const smallKillScore = stats.smallKills * 10;
         const bigKillScore = stats.bigKills * 25;
@@ -81,12 +47,9 @@ export const ScoreSystem = {
                 level: currentLevel
             }
         };
-    },
+    }
 
-    /**
-     * 更新结算弹窗显示
-     */
-    updateModal(score: Score, isVictory: boolean) {
+    public static updateModal(score: Score, isVictory: boolean) {
         document.getElementById('resultTitle')!.innerText = isVictory ? '🏆 胜利！你击败了Boss！' : '💔 勇者倒下了';
 
         document.getElementById('baseScore')!.innerText = score.baseScore.toString();
@@ -102,4 +65,4 @@ export const ScoreSystem = {
         document.getElementById('levelScore')!.innerText = score.details.level + ' ×100 = ' + score.levelScore;
         document.getElementById('totalScore')!.innerText = '总分: ' + score.total;
     }
-};
+}

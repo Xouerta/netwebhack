@@ -6,42 +6,43 @@ import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import type {Stats} from "../core/Stats.ts";
 import type {BiConsumer} from "../types.ts";
+import {SoundSystem} from "./SoundSystem.ts";
 
 export interface FightCallback {
     addLog: BiConsumer<string, string>;
 }
 
-export const CombatSystem = {
+export class CombatSystem {
     /**
      * 计算伤害
      */
-    calculateDamage(attackerAtk: number, defenderDef: number) {
+    public static calculateDamage(attackerAtk: number, defenderDef: number) {
         let baseDamage = Math.max(1, attackerAtk - defenderDef);
         // 20%概率±1伤害浮动
         if (Math.random() < 0.2) {
             baseDamage += Math.random() < 0.5 ? 1 : -1;
         }
         return Math.max(1, baseDamage);
-    },
+    }
 
     /**
      * 玩家攻击怪物
      */
-    playerAttack(player: PlayerEntity, mob: MobEntity, gameCallbacks: FightCallback) {
+    public static playerAttack(player: PlayerEntity, mob: MobEntity, gameCallbacks: FightCallback) {
         const damage = this.calculateDamage(player.atk, mob.def);
         const oldHp = mob.getHealth();
-        mob.takeDamage(damage)
+        mob.takeDamage(damage);
         const died = mob.isDead();
 
         gameCallbacks.addLog(`⚔️ 你对${mob.getName()}造成 ${damage} 点伤害 (${mob.getName()} HP: ${oldHp}→${mob.getHealth()})`, 'fight');
-
+        SoundSystem.play('/sound/attack.ogg');
         return {damage, died};
-    },
+    }
 
     /**
      * 怪物反击
      */
-    monsterAttack(mob: MobEntity, player: PlayerEntity, gameCallbacks: FightCallback) {
+    public static monsterAttack(mob: MobEntity, player: PlayerEntity, gameCallbacks: FightCallback) {
         const damage = this.calculateDamage(mob.atk, player.def);
         const oldHp = player.getHealth();
         player.takeDamage(damage)
@@ -50,12 +51,12 @@ export const CombatSystem = {
         gameCallbacks.addLog(`💥 ${mob.getName()}反击，对你造成 ${damage} 点伤害 (你的HP: ${oldHp}→${player.getHealth()})`, 'fight');
 
         return {damage, died};
-    },
+    }
 
     /**
      * 处理击败怪物后的奖励
      */
-    handleDefeat(mob: MobEntity, player: PlayerEntity, stats: Stats, gameCallbacks: FightCallback) {
+    public static handleDefeat(mob: MobEntity, player: PlayerEntity, stats: Stats, gameCallbacks: FightCallback) {
         // 统计杀敌
         if (mob.type === 'big') {
             stats.bigKills++;
@@ -78,13 +79,13 @@ export const CombatSystem = {
                 gameCallbacks.addLog(`✨ 击败${mob.getName()}，生命上限+1`, 'fight');
             }
         }
-    },
+    }
 
     /**
      * 完整的战斗回合
      * @returns {Object} 战斗结果
      */
-    fight(
+    public static fight(
         player: PlayerEntity,
         mob: MobEntity,
         mobs: MobEntity[],
@@ -112,4 +113,4 @@ export const CombatSystem = {
 
         return {fightOngoing: true};
     }
-};
+}

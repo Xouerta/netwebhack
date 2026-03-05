@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 全局关闭弹窗函数
-    window.onclose = () => {
+    // @ts-ignore
+    window.closeGameOverModal = () => {
         modalManager.closeGameOverModal();
     };
 
