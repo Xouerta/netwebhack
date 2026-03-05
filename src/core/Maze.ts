@@ -1,5 +1,5 @@
 export class Maze {
-    private map: Uint8Array<ArrayBuffer>;
+    private readonly map: Uint8Array<ArrayBuffer>;
     private readonly size: number;
 
     public constructor(size: number) {
@@ -16,11 +16,14 @@ export class Maze {
     }
 
     public change(maze: Maze) {
-        this.map = new Uint8Array(maze.map);
+        this.map.set(maze.map);
+        if (maze.map.length < this.map.length) {
+            this.map.fill(0, maze.map.length);
+        }
     }
 
     public reset(): void {
-        this.map = new Uint8Array(this.size * this.size);
+        this.map.fill(0);
     }
 
     public getSize() {

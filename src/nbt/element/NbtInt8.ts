@@ -1,7 +1,7 @@
 import type {NbtElement} from "./NbtElement.ts";
 import type {BinaryWriter} from "../BinaryWriter.ts";
 import {type NbtType, NbtTypeId, type NbtTypeIndex} from "../NbtType.ts";
-import {config, deepFreeze} from "../../utils/uit.ts";
+import {config} from "../../utils/uit.ts";
 import type {BinaryReader} from "../BinaryReader.ts";
 
 export class NbtInt8 implements NbtElement {
@@ -12,11 +12,11 @@ export class NbtInt8 implements NbtElement {
     });
 
     public static of(value: number): NbtInt8 {
-        return this.cache[128 + Math.floor(value)];
+        return new NbtInt8(Math.floor(value));
     }
 
     public static bool(bl: boolean): NbtInt8 {
-        return bl ? this.cache[129] : this.cache[128];
+        return bl ? new NbtInt8(1) : new NbtInt8(0);
     }
 
     public readonly value: number;
@@ -35,14 +35,6 @@ export class NbtInt8 implements NbtElement {
 
     public copy(): NbtInt8 {
         return this;
-    }
-
-    private static readonly cache: NbtInt8[] = new Array<NbtInt8>(256);
-    static {
-        for (let i = 0; i < this.cache.length; i++) {
-            this.cache[i] = new NbtInt8(i - 128);
-        }
-        deepFreeze(this.cache);
     }
 
     public toString(): string {

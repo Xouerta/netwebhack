@@ -85,8 +85,8 @@ export class Game {
     public movePlayer(dr: number, dc: number) {
         if (this.cannotAct()) return;
 
-        let nr = this.state.player.pos.row + dr;
-        let nc = this.state.player.pos.col + dc;
+        const nr = this.state.player.pos.row + dr;
+        const nc = this.state.player.pos.col + dc;
 
         if (!this.isValidMove(nr, nc)) return;
 
@@ -106,7 +106,6 @@ export class Game {
 
         // 处理格子内容
         this.handleCellContent(nr, nc);
-
         this.updateAndRender();
 
         // 怪物移动
@@ -261,12 +260,10 @@ export class Game {
             (confirmed: boolean) => {
                 if (confirmed) {
                     const success = this.levelManager.nextLevel();
-                    if (success) {
-                        this.updateAndRender();
-                    }
-                } else {
-                    this.logSystem.addStairs("🚫 取消下楼");
+                    if (success) this.updateAndRender();
+                    return
                 }
+                this.logSystem.addStairs("🚫 取消下楼");
             }
         );
     }
@@ -277,12 +274,12 @@ export class Game {
     public resetPlayer() {
         if (this.state.gameOver || this.state.gameWin) {
             this.loadWorld(this.currentSeed);
-        } else {
-            this.state.player.reset();
-            this.logSystem.addStairs("🔄 重置到起点");
-            this.inventoryUI.updateInventory(this.state.player.getInventory());
-            this.render();
+            return
         }
+        this.state.player.reset();
+        this.logSystem.addStairs("🔄 重置到起点");
+        this.inventoryUI.updateInventory(this.state.player.getInventory());
+        this.render();
     }
 
     public cannotAct() {
@@ -308,7 +305,6 @@ export class Game {
             this.logSystem.addItem(
                 `⏎ 按下回车键拾取 ${this.state.getItemTypeName(cell)}`
             );
-            console.log('Item found at', row, col, 'type:', cell); // 调试用
         } else if (cell === 6) {
             // 随机事件
             this.state.maze.set(row, col, 1);
@@ -353,9 +349,8 @@ export class Game {
             this.state.maze,
             this.state.player,
             this.state.monsters,
-            this.state.stairsPos,
             this.state.gameWin,
             this.state.gameOver
-        );
+        )
     }
 }

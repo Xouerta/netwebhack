@@ -56,8 +56,8 @@ export class MazeGenerator {
 
         // Kruskal算法打通墙
         for (let e of edges) {
-            let ka = e.a[0] + ',' + e.a[1];
-            let kb = e.b[0] + ',' + e.b[1];
+            const ka = e.a[0] + ',' + e.a[1];
+            const kb = e.b[0] + ',' + e.b[1];
             if (uf.find(ka) !== uf.find(kb)) {
                 maze.set(e.wallRow, e.wallCol, 1);
                 uf.union(ka, kb);

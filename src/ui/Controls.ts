@@ -1,32 +1,29 @@
-/**
- * 键盘控制模块
- * 处理玩家移动和键盘事件
- */
 import type {Game} from "../core/Game.ts";
 
 export class Controls {
     private readonly game: Game;
+    private readonly moveKeys = new Set<string>(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyD', 'KeyA']);
 
-    constructor(game: Game) {
+    public constructor(game: Game) {
         this.game = game;
-        this._setupKeyboard();
+        this.setupKeyboard();
     }
 
     /**
      * 设置键盘监听
      */
-    _setupKeyboard() {
-        window.addEventListener('keydown', (e) => this._handleKeyDown(e));
+    private setupKeyboard() {
+        window.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
     /**
      * 处理键盘事件
      */
-    _handleKeyDown(e: KeyboardEvent) {
+    private handleKeyDown(e: KeyboardEvent) {
         const key = e.code;
 
         // 方向键处理
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyD', 'KeyA'].includes(key)) {
+        if (this.moveKeys.has(key)) {
             e.preventDefault();
 
             if (this.game.cannotAct()) return;
@@ -38,22 +35,19 @@ export class Controls {
             else if (key === 'ArrowRight' || key === 'KeyD') dc = 1;
 
             this.game.movePlayer(dr, dc);
+            return;
         }
 
         // 回车键拾取物品
-        else if (key === 'Enter' || key === 'NumpadEnter') {
+        if (key === 'Enter' || key === 'NumpadEnter') {
             e.preventDefault();
-            console.log('Enter key pressed'); // 调试用
-            if (this.game.cannotAct()) {
-                console.log('Cannot act'); // 调试用
-                return;
-            }
-            const result = this.game.pickupCurrentItem();
-            console.log('Pickup result:', result); // 调试用
+            if (this.game.cannotAct()) return;
+            this.game.pickupCurrentItem();
+            return;
         }
 
         // 数字键使用物品（1-3）
-        else if (key >= '1' && key <= '3') {
+        if (key >= '1' && key <= '3') {
             e.preventDefault();
             if (this.game.cannotAct()) return;
 
@@ -66,13 +60,15 @@ export class Controls {
             } else if (num === 3) {
                 this.game.useShield();
             }
+            return;
         }
 
         // D键打开丢弃物品界面
-        else if (key === 'd' || key === 'D') {
+        if (key === 'd' || key === 'D') {
             e.preventDefault();
             if (this.game.cannotAct()) return;
             this.game.openDropItemModal();
+            return;
         }
     }
 }

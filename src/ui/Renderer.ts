@@ -4,7 +4,6 @@
  */
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
-import type {Position} from "../core/Position.ts";
 import type {Maze} from "../core/Maze.ts";
 
 export class Renderer {
@@ -24,18 +23,17 @@ export class Renderer {
     /**
      * 绘制整个游戏画面
      */
-    public render(maze: Maze, player: PlayerEntity, monsters: MobEntity[], _stairsPos: Position, gameWin: boolean, gameOver: boolean) {
+    public render(maze: Maze, player: PlayerEntity, monsters: MobEntity[], gameWin: boolean, gameOver: boolean) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.renderMaze(maze);
-        this._renderMonsters(monsters);
-        this._renderPlayer(player);
+        this.renderMonsters(monsters);
+        this.renderPlayer(player);
 
         if (gameWin) {
-            this._renderWinMessage();
-        }
-        if (gameOver) {
-            this._renderGameOverMessage();
+            this.renderWinMessage();
+        } else if (gameOver) {
+            this.renderGameOverMessage();
         }
     }
 
@@ -50,7 +48,7 @@ export class Renderer {
                 const cell = maze.get(r, c);
 
                 this.renderCell(x, y, cell);
-                this._renderGridLine(x, y);
+                this.renderGridLine(x, y);
             }
         }
     }
@@ -109,7 +107,7 @@ export class Renderer {
     /**
      * 绘制网格线
      */
-    _renderGridLine(x: number, y: number) {
+    private renderGridLine(x: number, y: number) {
         this.ctx.strokeStyle = '#1f6d7a';
         this.ctx.lineWidth = 0.5;
         this.ctx.strokeRect(x, y, this.cellSize, this.cellSize);
@@ -118,7 +116,7 @@ export class Renderer {
     /**
      * 绘制怪物
      */
-    _renderMonsters(monsters: MobEntity[]) {
+    private renderMonsters(monsters: MobEntity[]) {
         monsters.forEach(m => {
             const x = m.pos.col * this.cellSize;
             const y = m.pos.row * this.cellSize;
@@ -133,15 +131,15 @@ export class Renderer {
                 this.ctx.shadowColor = 'darkred';
             }
 
-            this._drawMonsterShape(x, y);
-            this._drawMonsterHealth(x, y, m.getHealth());
+            this.drawMonsterShape(x, y);
+            this.drawMonsterHealth(x, y, m.getHealth());
         });
     }
 
     /**
      * 绘制怪物形状（六边形）
      */
-    _drawMonsterShape(x: number, y: number) {
+    private drawMonsterShape(x: number, y: number) {
         this.ctx.beginPath();
         this.ctx.moveTo(x + 5, y + 2);
         this.ctx.lineTo(x + 20, y + 2);
@@ -156,7 +154,7 @@ export class Renderer {
     /**
      * 绘制怪物血量
      */
-    _drawMonsterHealth(x: number, y: number, hp: number) {
+    private drawMonsterHealth(x: number, y: number, hp: number) {
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 9px monospace';
         this.ctx.shadowBlur = 0;
@@ -166,7 +164,7 @@ export class Renderer {
     /**
      * 绘制玩家
      */
-    _renderPlayer(player: PlayerEntity) {
+    private renderPlayer(player: PlayerEntity) {
         const x = player.pos.col * this.cellSize;
         const y = player.pos.row * this.cellSize;
 
@@ -186,7 +184,7 @@ export class Renderer {
     /**
      * 绘制胜利信息
      */
-    _renderWinMessage() {
+    private renderWinMessage() {
         this.ctx.fillStyle = '#ffffffcc';
         this.ctx.font = 'bold 30px sans-serif';
         this.ctx.shadowBlur = 20;
@@ -196,7 +194,7 @@ export class Renderer {
     /**
      * 绘制游戏结束信息
      */
-    _renderGameOverMessage() {
+    private renderGameOverMessage() {
         this.ctx.fillStyle = '#000000cc';
         this.ctx.font = 'bold 30px sans-serif';
         this.ctx.shadowBlur = 20;

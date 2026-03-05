@@ -3,7 +3,7 @@
     font-family: 'Segoe UI', 'Courier New', monospace;
 }
 
-::-webkit-scrollbar-track {
+::-webkit-scrollbar {
     display: none;
 }
 
@@ -138,7 +138,6 @@ body {
 
 button {
     background: #2d7e91;
-    border: none;
     border-radius: 2.5rem;
     padding: 0.5rem 1.6rem;
     font-size: 1.2rem;
@@ -358,7 +357,6 @@ canvas {
 
 .modal-btn {
     background: #307e8f;
-    border: none;
     border-radius: 3rem;
     padding: 0.8rem 2rem;
     font-size: 1.2rem;
@@ -383,6 +381,7 @@ canvas {
     text-align: center;
     margin: 1rem 0;
 }
+
 /* 背包相关样式 */
 .inventory-container {
     width: 250px;
@@ -453,7 +452,6 @@ canvas {
 
 .inventory-btn {
     background: #2d7e91;
-    border: none;
     border-radius: 2rem;
     padding: 0.6rem;
     font-size: 1rem;
@@ -491,6 +489,7 @@ canvas {
     flex: 1;
     max-width: 300px;
 }
+
 /* 丢弃物品弹窗样式 */
 .drop-item-list {
     max-height: 300px;
@@ -521,7 +520,6 @@ canvas {
 
 .drop-btn {
     background: #8f3e3e;
-    border: none;
     border-radius: 1.5rem;
     padding: 0.4rem 1rem;
     color: white;

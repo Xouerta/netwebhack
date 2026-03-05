@@ -4,7 +4,7 @@
  */
 import {GameState} from "./GameState.ts";
 import type {Supplier} from "../types.ts";
-import {MonsterGenerator} from "../entity/MobEntity.ts";
+import {MobEntity, MonsterGenerator} from "../entity/MobEntity.ts";
 import {shuffleArray} from "../utils/math.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {MazeGenerator} from "./MazeGenerator.ts";
@@ -14,7 +14,7 @@ export class GameLevel {
     public rngs: Record<string, Supplier<number>>;
     private readonly logSystem: LogSystem;
 
-    constructor(gameState: GameState, rngs: Record<string, Supplier<number>>, logSystem: LogSystem) {
+    public constructor(gameState: GameState, rngs: Record<string, Supplier<number>>, logSystem: LogSystem) {
         this.state = gameState;
         this.rngs = rngs;
         this.logSystem = logSystem;
@@ -38,10 +38,8 @@ export class GameLevel {
         // 生成怪物
         this.state.monsters = this.spawnMonsters(level);
 
-        // 重置玩家位置
-        this.state.player.pos.row = 1;
-        this.state.player.pos.col = 1;
-        this.state.maze.set(1, 1, 1);
+        const {row, col} = this.state.player.pos;
+        this.state.maze.set(row, col, 1);
 
         this.logSystem.addStairs(`🏰 进入第 ${level} 层`);
     }
@@ -51,11 +49,11 @@ export class GameLevel {
      */
     private spawnMonsters(level: number) {
         if (level === GameState.TOTAL_LEVELS) {
-            return this._spawnBoss(level);
+            return this.spawnBoss(level);
         }
 
-        let mobs = [];
-        let allFreeCells = this.state.getFreeCellsForMonsters();
+        const mobs: MobEntity[] = [];
+        const allFreeCells = this.state.getFreeCellsForMonsters();
 
         if (allFreeCells.length === 0) return [];
 
@@ -68,12 +66,11 @@ export class GameLevel {
         const bigMonsterCount = Math.floor(monsterCount * (0.2 + level * 0.1));
 
         // 分离近处和远处的格子
-        const nearCells = [];
-        const farCells = [];
+        const nearCells: number[][] = [];
+        const farCells: number[][] = [];
 
-        for (let cell of allFreeCells) {
-            const [r, c] = cell;
-            const dist = this.state.manhattanDistance(r, c, 1, 1);
+        for (const cell of allFreeCells) {
+            const dist = this.state.manhattanDistance(cell[0], cell[1], 1, 1);
             if (dist >= GameState.MIN_BIG_MOB_DISTANCE) {
                 farCells.push(cell);
             } else {
@@ -82,18 +79,18 @@ export class GameLevel {
         }
 
         // 随机打乱
-        const shuffledNear = shuffleArray(nearCells, this.rngs.monster);
-        const shuffledFar = shuffleArray(farCells, this.rngs.monster);
+        shuffleArray(nearCells, this.rngs.monster);
+        shuffleArray(farCells, this.rngs.monster);
 
         // 放置大怪
         let bigMonstersPlaced = 0;
         const bigMonsterIndices = this.state.selectRandomIndices(
-            shuffledFar.length, bigMonsterCount, this.rngs.monster
+            farCells.length, bigMonsterCount, this.rngs.monster
         );
 
         for (let i = 0; i < bigMonsterIndices.length; i++) {
             const idx = bigMonsterIndices[i];
-            const [r, c] = shuffledFar[idx];
+            const [r, c] = farCells[idx];
             const monster = MonsterGenerator.spawn(level, 'big', r, c, this.rngs.monster);
             mobs.push(monster);
             bigMonstersPlaced++;
@@ -103,20 +100,19 @@ export class GameLevel {
         const smallMonsterCount = monsterCount - bigMonstersPlaced;
 
         const usedFarIndices = new Set(bigMonsterIndices);
-        const remainingCells = [];
+        const remainingCells: number[][] = [];
 
-        for (let i = 0; i < shuffledFar.length; i++) {
+        for (let i = 0; i < farCells.length; i++) {
             if (!usedFarIndices.has(i)) {
-                remainingCells.push(shuffledFar[i]);
+                remainingCells.push(farCells[i]);
             }
         }
 
-        remainingCells.push(...shuffledNear);
+        remainingCells.push(...nearCells);
 
-        const shuffledRemaining = shuffleArray(remainingCells, this.rngs.monster);
-
-        for (let i = 0; i < smallMonsterCount && i < shuffledRemaining.length; i++) {
-            const [r, c] = shuffledRemaining[i];
+        shuffleArray(remainingCells, this.rngs.monster);
+        for (let i = 0; i < smallMonsterCount && i < remainingCells.length; i++) {
+            const [r, c] = remainingCells[i];
             const monster = MonsterGenerator.spawn(level, 'small', r, c, this.rngs.monster);
             mobs.push(monster);
         }
@@ -127,9 +123,8 @@ export class GameLevel {
     /**
      * 生成Boss
      */
-    _spawnBoss(level: number) {
-        let freeCells = this.state.getFreeCellsForMonsters();
-
+    private spawnBoss(level: number) {
+        const freeCells = this.state.getFreeCellsForMonsters();
         if (freeCells.length === 0) return [];
 
         const farCells = freeCells.filter(([r, c]) =>
@@ -138,16 +133,16 @@ export class GameLevel {
 
         const candidates = farCells.length > 0 ? farCells : freeCells;
         const randomIndex = Math.floor(this.rngs.monster() * candidates.length);
-        const [r, c] = candidates[randomIndex];
+        const cell = candidates[randomIndex];
 
-        const boss = MonsterGenerator.spawn(level, 'boss', r, c, this.rngs.monster);
+        const boss = MonsterGenerator.spawn(level, 'boss', cell[0], cell[1], this.rngs.monster);
         return [boss];
     }
 
     /**
      * 移动到下一层
      */
-    nextLevel() {
+    public nextLevel() {
         if (this.state.currentLevel < GameState.TOTAL_LEVELS) {
             this.state.currentLevel++;
             this.loadLevel(this.state.currentLevel);

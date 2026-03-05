@@ -21,7 +21,7 @@ export class GameState {
     public gameOver: boolean;
     public waitingForEvent: boolean;
     public inCombat: boolean;
-    public currentItemCell: null | any;
+    public currentItemCell: null | { row: number, col: number, type: number };
     public stats: Stats;
 
     public constructor() {
