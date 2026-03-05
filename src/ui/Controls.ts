@@ -24,6 +24,7 @@ export class Controls {
      */
     _handleKeyDown(e: KeyboardEvent) {
         const key = e.code;
+        e.preventDefault();
 
         // 方向键处理
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyD', 'KeyA'].includes(key)) {
@@ -41,7 +42,7 @@ export class Controls {
         }
 
         // 回车键拾取物品
-        else if (key === 'Enter') {
+        else if (key === 'Enter' || key === 'NumpadEnter') {
             e.preventDefault();
             console.log('Enter key pressed'); // 调试用
             if (this.game._cannotAct()) {

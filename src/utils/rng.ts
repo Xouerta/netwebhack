@@ -30,7 +30,7 @@ export const RNG = {
     /**
      * 随机打乱数组
      */
-    shuffle(rng: Supplier<number>, array: number[]) {
+    shuffle(rng: Supplier<number>, array: any) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(rng() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];

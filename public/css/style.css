@@ -3,6 +3,10 @@
     font-family: 'Segoe UI', 'Courier New', monospace;
 }
 
+::-webkit-scrollbar-track {
+    display: none;
+}
+
 body {
     background: #0f1a20;
     min-height: 100vh;

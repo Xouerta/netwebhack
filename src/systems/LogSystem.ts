@@ -7,7 +7,7 @@ export class LogSystem {
     private readonly logElement: HTMLElement;
     private readonly maxEntries: number;
 
-    constructor(logElement: HTMLElement) {
+    public constructor(logElement: HTMLElement) {
         this.logElement = logElement;
         this.maxEntries = 50;
     }

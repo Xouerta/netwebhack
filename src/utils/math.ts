@@ -37,12 +37,11 @@ export function createRNG(seedInt: number) {
 }
 
 export function shuffleArray<T>(array: T[], rng: Supplier<number>) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
+    for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(rng() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        [array[i], array[j]] = [array[j], array[i]];
     }
-    return newArray;
+    return array;
 }
 
 export function getCell(array: Uint8Array, size: number, row: number, col: number): number {
