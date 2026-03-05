@@ -3,7 +3,7 @@
  * 处理随机事件的触发和执行
  */
 
-const EventSystem = {
+export const EventSystem = {
     /**
      * 事件库
      */

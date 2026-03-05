@@ -2,25 +2,43 @@
  * 弹窗管理器模块
  * 管理所有弹窗的显示和交互
  */
+import {type Score, ScoreSystem} from "../systems/Score.ts";
+import type {Consumer} from "../types.ts";
 
 export class ModalManager {
+    private eventModal: HTMLElement;
+    private confirmModal: HTMLElement;
+    private gameOverModal: HTMLElement;
+    private dropItemModal: HTMLElement;
+    private modalTitle: HTMLElement;
+    private modalDesc: HTMLElement;
+    private modalButtons: HTMLElement;
+    private confirmYes: HTMLElement;
+    private confirmNo: HTMLElement;
+    private dropItemList: HTMLElement;
+    private confirmMessage: HTMLElement;
+    private dropItemConfirm: HTMLElement;
+    private dropItemCancel: HTMLElement;
+    private eventCallback: null | Consumer<any>;
+    private confirmCallback: null | Consumer<any>;
+
     constructor() {
-        this.eventModal = document.getElementById('eventModal');
-        this.confirmModal = document.getElementById('confirmModal');
-        this.gameOverModal = document.getElementById('gameOverModal');
-        this.dropItemModal = document.getElementById('dropItemModal');
+        this.eventModal = document.getElementById('eventModal')!;
+        this.confirmModal = document.getElementById('confirmModal')!;
+        this.gameOverModal = document.getElementById('gameOverModal')!;
+        this.dropItemModal = document.getElementById('dropItemModal')!;
 
-        this.modalTitle = document.getElementById('eventTitle');
-        this.modalDesc = document.getElementById('eventDesc');
-        this.modalButtons = document.getElementById('eventButtons');
-        this.confirmMessage = document.getElementById('confirmMessage');
+        this.modalTitle = document.getElementById('eventTitle')!;
+        this.modalDesc = document.getElementById('eventDesc')!;
+        this.modalButtons = document.getElementById('eventButtons')!;
+        this.confirmMessage = document.getElementById('confirmMessage')!;
 
-        this.confirmYes = document.getElementById('confirmYes');
-        this.confirmNo = document.getElementById('confirmNo');
+        this.confirmYes = document.getElementById('confirmYes')!;
+        this.confirmNo = document.getElementById('confirmNo')!;
 
-        this.dropItemList = document.getElementById('dropItemList');
-        this.dropItemConfirm = document.getElementById('dropItemConfirm');
-        this.dropItemCancel = document.getElementById('dropItemCancel');
+        this.dropItemList = document.getElementById('dropItemList')!;
+        this.dropItemConfirm = document.getElementById('dropItemConfirm')!;
+        this.dropItemCancel = document.getElementById('dropItemCancel')!;
 
         this.eventCallback = null;
         this.confirmCallback = null;
@@ -56,12 +74,12 @@ export class ModalManager {
     /**
      * 显示事件弹窗
      */
-    showEventModal(title, desc, options) {
+    showEventModal(title: string, desc: string, options: any) {
         this.modalTitle.innerText = title;
         this.modalDesc.innerText = desc;
 
         this.modalButtons.innerHTML = '';
-        options.forEach((opt, idx) => {
+        options.forEach((opt: any, idx: number) => {
             const btn = document.createElement('button');
             btn.className = 'modal-btn' + (idx === 0 ? '' : ' negative');
             btn.innerText = opt.text;
@@ -82,7 +100,7 @@ export class ModalManager {
     /**
      * 显示确认弹窗
      */
-    showConfirmModal(message, callback) {
+    showConfirmModal(message: string, callback: Consumer<any>) {
         this.confirmMessage.innerText = message;
         this.confirmCallback = callback;
 
@@ -110,7 +128,7 @@ export class ModalManager {
      * @param {Array} inventory - 背包物品数组
      * @param {Function} onDrop - 丢弃回调函数，接收物品索引
      */
-    showDropItemModal(inventory, onDrop) {
+    showDropItemModal(inventory: Array<any>, onDrop: Function) {
         if (!this.dropItemModal) {
             console.error('丢弃物品弹窗元素不存在');
             return;
@@ -166,7 +184,7 @@ export class ModalManager {
      * @param {Function} onConfirm - 确认回调
      * @param {Function} onCancel - 取消回调
      */
-    showPickupConfirmModal(itemType, onConfirm, onCancel) {
+    showPickupConfirmModal(itemType: string, onConfirm: Function, onCancel: Function) {
         const itemName = this._getItemDisplayName(itemType);
         this.showConfirmModal(
             `是否拾取 ${itemName}？\n(按回车确认，按ESC取消)`,
@@ -183,8 +201,8 @@ export class ModalManager {
     /**
      * 获取物品显示名称
      */
-    _getItemDisplayName(itemType) {
-        const names = {
+    _getItemDisplayName(itemType: string) {
+        const names: Record<string, string> = {
             'sword': '🗡️ 剑',
             'shield': '🛡️ 盾',
             'potion': '🧴 血药',
@@ -192,15 +210,15 @@ export class ModalManager {
             'small': '👾 小怪',
             'boss': '👑 Boss'
         };
-        return names[itemType] || itemType;
+        return names[itemType] ?? itemType;
     }
 
     /**
      * 显示游戏结束弹窗
      */
-    showGameOverModal(score, isVictory) {
+    showGameOverModal(score: Score, isVictory: boolean) {
         // 假设 ScoreSystem 是全局可用的
-        if (window.ScoreSystem) {
+        if (ScoreSystem) {
             ScoreSystem.updateModal(score, isVictory);
         } else {
             console.error('ScoreSystem not found');

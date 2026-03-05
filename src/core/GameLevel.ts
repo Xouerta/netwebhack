@@ -11,7 +11,7 @@ import type {LogSystem} from "../systems/LogSystem.ts";
 
 export class GameLevel {
     private readonly state: GameState;
-    private readonly rngs: Record<string, Supplier<number>>;
+    public rngs: Record<string, Supplier<number>>;
     private readonly logSystem: LogSystem;
 
     constructor(gameState: GameState, rngs: Record<string, Supplier<number>>, logSystem: LogSystem) {

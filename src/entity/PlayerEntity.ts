@@ -59,7 +59,7 @@ export class PlayerEntity extends Entity {
      * 获取背包物品列表
      */
     public getInventory() {
-        return this.inventory;
+        return this.inventory.items;
     }
 
     /**

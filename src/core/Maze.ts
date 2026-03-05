@@ -39,7 +39,7 @@ export const MazeGenerator = {
         }
 
         // 收集所有墙
-        let edges = [];
+        const edges = [];
         for (let r = 1; r < size - 1; r += 2) {
             for (let c = 1; c < size - 3; c += 2) {
                 edges.push({wallRow: r, wallCol: c + 1, a: [r, c], b: [r, c + 2]});
@@ -212,11 +212,4 @@ export const MazeGenerator = {
         }
         return free;
     },
-
-    /**
-     * 计算曼哈顿距离
-     */
-    _manhattanDistance(r1: number, c1: number, r2: number, c2: number) {
-        return Math.abs(r1 - r2) + Math.abs(c1 - c2);
-    }
 };

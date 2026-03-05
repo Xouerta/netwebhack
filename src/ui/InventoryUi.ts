@@ -2,13 +2,20 @@
  * 背包UI组件
  * 管理左侧背包栏的显示和交互
  */
+import type {Game} from "../core/Game.ts";
 
 export class InventoryUI {
-    constructor(containerId, game) {
-        this.container = document.getElementById(containerId);
+    private readonly container: HTMLElement;
+    public game: Game;
+    public slots: string[];
+
+    private itemList: HTMLElement | null = null;
+    private spaceSpan: HTMLElement | null = null;
+
+    public constructor(containerId: string, game: Game) {
+        this.container = document.getElementById(containerId)!;
         if (!this.container) {
-            console.error(`Container with id "${containerId}" not found`);
-            return;
+            throw new Error(`Container with id "${containerId}" not found`);
         }
 
         this.game = game;
@@ -75,18 +82,16 @@ export class InventoryUI {
 
         // 保存引用
         this.itemList = itemList;
-        this.spaceSpan = document.getElementById('inventorySpace');
+        this.spaceSpan = document.getElementById('inventorySpace')!;
     }
 
     /**
      * 更新背包显示
      */
-    updateInventory(inventory) {
+    updateInventory(inventory: any[]) {
         if (!this.itemList || !this.spaceSpan) return;
 
         this.itemList.innerHTML = '';
-
-        const space = this.game.state.player.getInventorySpace();
         this.spaceSpan.innerText = inventory.length + '/10';
 
         if (inventory.length === 0) {
@@ -105,15 +110,15 @@ export class InventoryUI {
             const name = this._getItemName(item.type);
 
             itemDiv.innerHTML = `${icon} ${name}`;
-            this.itemList.appendChild(itemDiv);
+            this.itemList?.appendChild(itemDiv);
         });
     }
 
     /**
      * 获取物品图标
      */
-    _getItemIcon(type) {
-        const icons = {
+    _getItemIcon(type: string) {
+        const icons: Record<string, string> = {
             'sword': '🗡️',
             'shield': '🛡️',
             'potion': '🧴'
@@ -124,8 +129,8 @@ export class InventoryUI {
     /**
      * 获取物品名称
      */
-    _getItemName(type) {
-        const names = {
+    _getItemName(type: string) {
+        const names: Record<string, string> = {
             'sword': '剑',
             'shield': '盾',
             'potion': '血药'

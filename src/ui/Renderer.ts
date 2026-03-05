@@ -2,19 +2,30 @@
  * 渲染器模块
  * 负责绘制迷宫、玩家、怪物等所有图形元素
  */
+import type {PlayerEntity} from "../entity/PlayerEntity.ts";
+import type {MobEntity} from "../entity/MobEntity.ts";
+import type {Position} from "../core/Position.ts";
+import {MazeGenerator} from "../core/Maze.ts";
+import {getCell} from "../utils/math.ts";
 
 export class Renderer {
-    constructor(canvas, cellSize = 25) {
+    private readonly canvas: HTMLCanvasElement;
+    private readonly ctx: CanvasRenderingContext2D;
+    private readonly cellSize: number;
+    private readonly size: number
+
+
+    constructor(canvas: HTMLCanvasElement, cellSize = 25) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
+        this.ctx = canvas.getContext('2d')!;
         this.cellSize = cellSize;
-        this.SIZE = 40; // 与MazeGenerator.SIZE保持一致
+        this.size = MazeGenerator.SIZE;
     }
 
     /**
      * 绘制整个游戏画面
      */
-    render(maze, player, monsters, stairsPos, gameWin, gameOver) {
+    render(maze: Uint8Array, player: PlayerEntity, monsters: MobEntity[], _stairsPos: Position, gameWin: boolean, gameOver: boolean) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this._renderMaze(maze);
@@ -32,12 +43,12 @@ export class Renderer {
     /**
      * 绘制迷宫底层
      */
-    _renderMaze(maze) {
-        for (let r = 0; r < this.SIZE; r++) {
-            for (let c = 0; c < this.SIZE; c++) {
+    _renderMaze(maze: Uint8Array) {
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
                 const x = c * this.cellSize;
                 const y = r * this.cellSize;
-                const cell = maze[r][c];
+                const cell = getCell(maze, this.size, r, c);
 
                 this._renderCell(x, y, cell);
                 this._renderGridLine(x, y);
@@ -48,7 +59,7 @@ export class Renderer {
     /**
      * 绘制单个格子
      */
-    _renderCell(x, y, cell) {
+    _renderCell(x: number, y: number, cell: number) {
         if (cell === 0) {
             // 墙
             this.ctx.fillStyle = '#1d4f5a';
@@ -69,7 +80,7 @@ export class Renderer {
     /**
      * 绘制道具
      */
-    _renderItem(x, y, cell) {
+    _renderItem(x: number, y: number, cell: number) {
         this.ctx.font = 'bold 16px "Segoe UI", "Courier New", monospace';
         this.ctx.fillStyle = '#000000';
         this.ctx.shadowBlur = 8;
@@ -99,7 +110,7 @@ export class Renderer {
     /**
      * 绘制网格线
      */
-    _renderGridLine(x, y) {
+    _renderGridLine(x: number, y: number) {
         this.ctx.strokeStyle = '#1f6d7a';
         this.ctx.lineWidth = 0.5;
         this.ctx.strokeRect(x, y, this.cellSize, this.cellSize);
@@ -108,10 +119,10 @@ export class Renderer {
     /**
      * 绘制怪物
      */
-    _renderMonsters(monsters) {
+    _renderMonsters(monsters: MobEntity[]) {
         monsters.forEach(m => {
-            const x = m.col * this.cellSize;
-            const y = m.row * this.cellSize;
+            const x = m.pos.col * this.cellSize;
+            const y = m.pos.row * this.cellSize;
 
             if (m.type === 'boss') {
                 this.ctx.fillStyle = '#8b0000';
@@ -124,14 +135,14 @@ export class Renderer {
             }
 
             this._drawMonsterShape(x, y);
-            this._drawMonsterHealth(x, y, m.hp);
+            this._drawMonsterHealth(x, y, m.getHealth());
         });
     }
 
     /**
      * 绘制怪物形状（六边形）
      */
-    _drawMonsterShape(x, y) {
+    _drawMonsterShape(x: number, y: number) {
         this.ctx.beginPath();
         this.ctx.moveTo(x + 5, y + 2);
         this.ctx.lineTo(x + 20, y + 2);
@@ -146,7 +157,7 @@ export class Renderer {
     /**
      * 绘制怪物血量
      */
-    _drawMonsterHealth(x, y, hp) {
+    _drawMonsterHealth(x: number, y: number, hp: number) {
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 9px monospace';
         this.ctx.shadowBlur = 0;
@@ -156,9 +167,9 @@ export class Renderer {
     /**
      * 绘制玩家
      */
-    _renderPlayer(player) {
-        const x = player.col * this.cellSize;
-        const y = player.row * this.cellSize;
+    _renderPlayer(player: PlayerEntity) {
+        const x = player.pos.col * this.cellSize;
+        const y = player.pos.row * this.cellSize;
 
         this.ctx.fillStyle = '#3bc0db';
         this.ctx.shadowBlur = 15;

@@ -2,9 +2,12 @@
  * 键盘控制模块
  * 处理玩家移动和键盘事件
  */
+import type {Game} from "../core/Game.ts";
 
 export class Controls {
-    constructor(game) {
+    private readonly game: Game;
+
+    constructor(game: Game) {
         this.game = game;
         this._setupKeyboard();
     }
@@ -19,20 +22,20 @@ export class Controls {
     /**
      * 处理键盘事件
      */
-    _handleKeyDown(e) {
-        const key = e.key;
+    _handleKeyDown(e: KeyboardEvent) {
+        const key = e.code;
 
         // 方向键处理
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyD', 'KeyA'].includes(key)) {
             e.preventDefault();
 
             if (this.game._cannotAct()) return;
 
             let dr = 0, dc = 0;
-            if (key === 'ArrowUp') dr = -1;
-            else if (key === 'ArrowDown') dr = 1;
-            else if (key === 'ArrowLeft') dc = -1;
-            else if (key === 'ArrowRight') dc = 1;
+            if (key === 'ArrowUp' || key === 'KeyW') dr = -1;
+            else if (key === 'ArrowDown' || key === 'KeyS') dr = 1;
+            else if (key === 'ArrowLeft' || key === 'KeyA') dc = -1;
+            else if (key === 'ArrowRight' || key === 'KeyD') dc = 1;
 
             this.game.movePlayer(dr, dc);
         }

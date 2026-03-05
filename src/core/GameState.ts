@@ -20,7 +20,7 @@ export class GameState {
     public gameOver: boolean;
     public waitingForEvent: boolean;
     public inCombat: boolean;
-    public currentItemCell: null;
+    public currentItemCell: null|any;
     public stats: Stats;
 
     public constructor() {
