@@ -85,14 +85,14 @@ export class Game {
     public movePlayer(dr: number, dc: number) {
         if (this.cannotAct()) return;
 
-        const nr = this.state.player.pos.row + dr;
-        const nc = this.state.player.pos.col + dc;
+        const nr = this.state.player.row + dr;
+        const nc = this.state.player.col + dc;
 
         if (!this.isValidMove(nr, nc)) return;
 
         // 检查怪物
         const monsterAtTarget = this.state.monsters.find(
-            m => m.pos.row === nr && m.pos.col === nc
+            m => m.row === nr && m.col === nc
         );
         if (monsterAtTarget) {
             this.combatSystem.handleCombat(monsterAtTarget);
@@ -146,7 +146,6 @@ export class Game {
             return false;
         }
 
-        // @ts-ignore
         const added = this.state.player.addToInventory(itemType);
 
         if (added) {
@@ -155,7 +154,6 @@ export class Game {
             this.state.stats.itemsCollected++;
 
             this.logSystem.addItem(
-                // @ts-ignore
                 `📦 拾取 ${this.state.player.getItemDisplayName(itemType)} 放入背包`
             );
             this.state.currentItemCell = null;
@@ -214,6 +212,7 @@ export class Game {
         const used = this.state.player.useShield();
         if (used) {
             this.logSystem.addItem('🛡️ 使用盾，防御+1');
+            SoundSystem.play('/sound/armor.ogg');
             this.updateAndRender();
             return true;
         } else {

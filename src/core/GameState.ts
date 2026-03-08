@@ -4,6 +4,7 @@ import type {Position} from "./Position.ts";
 import type {Supplier} from "../types.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import {Maze} from "./Maze.ts";
+import type {ItemType} from "../inventory/ItemType.ts";
 
 export class GameState {
     public static readonly TOTAL_LEVELS = 5;
@@ -131,8 +132,8 @@ export class GameState {
     /**
      * 从格子类型获取物品类型
      */
-    public getItemTypeFromCell(cell: number): string {
-        const map: Record<number, string> = {
+    public getItemTypeFromCell(cell: number): ItemType {
+        const map: Record<number, ItemType> = {
             2: 'sword',
             3: 'shield',
             4: 'potion'

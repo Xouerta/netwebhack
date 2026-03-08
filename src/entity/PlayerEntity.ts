@@ -1,6 +1,7 @@
 import {Entity} from "./Entity.ts";
 import type {Position} from "../core/Position.ts";
 import type {Item} from "../item/Item.ts";
+import type {ItemType} from "../inventory/ItemType.ts";
 
 export class PlayerEntity extends Entity {
     private readonly inventory: { items: Item[], maxSize: number };
@@ -18,8 +19,8 @@ export class PlayerEntity extends Entity {
      * 重置玩家到起点
      */
     public reset() {
-        this.pos.row = 1;
-        this.pos.col = 1;
+        this.row = 1;
+        this.col = 1;
         this.setHealth(this.getMaxHealth());
     }
 
@@ -42,15 +43,15 @@ export class PlayerEntity extends Entity {
      * 移动到新位置
      */
     public moveTo(row: number, col: number) {
-        this.pos.row = row;
-        this.pos.col = col;
+        this.row = row;
+        this.col = col;
     }
 
     /**
      * 检查是否在终点
      */
     public isAtGoal(goalPos: Position) {
-        return this.pos.row === goalPos.row && this.pos.col === goalPos.col;
+        return this.row === goalPos.row && this.col === goalPos.col;
     }
 
     // ========== 背包系统方法 ==========
@@ -67,7 +68,7 @@ export class PlayerEntity extends Entity {
      * @param {string} itemType - 物品类型: 'sword', 'shield', 'potion'
      * @returns {boolean} 是否添加成功
      */
-    public addToInventory(itemType: 'sword' | 'shield' | 'potion'): boolean {
+    public addToInventory(itemType: ItemType): boolean {
         if (this.inventory.items.length >= this.inventory.maxSize) {
             return false;
         }
@@ -97,9 +98,9 @@ export class PlayerEntity extends Entity {
      * @returns {boolean} 是否使用成功
      */
     public usePotion(): boolean {
+        if (this.getHealth() === this.getMaxHealth()) return false;
         // 查找背包中的血药
         const potionIndex = this.inventory.items.findIndex(item => item.type === 'potion');
-
         if (potionIndex === -1) {
             return false;
         }
@@ -159,7 +160,7 @@ export class PlayerEntity extends Entity {
     /**
      * 获取物品显示名称
      */
-    public getItemDisplayName(itemType: 'sword' | 'shield' | 'potion') {
+    public getItemDisplayName(itemType: ItemType) {
         const names = {
             'sword': '🗡️ 剑',
             'shield': '🛡️ 盾',

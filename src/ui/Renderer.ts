@@ -118,8 +118,8 @@ export class Renderer {
      */
     private renderMonsters(monsters: MobEntity[]) {
         monsters.forEach(m => {
-            const x = m.pos.col * this.cellSize;
-            const y = m.pos.row * this.cellSize;
+            const x = m.col * this.cellSize;
+            const y = m.row * this.cellSize;
 
             if (m.type === 'boss') {
                 this.ctx.fillStyle = '#8b0000';
@@ -165,8 +165,8 @@ export class Renderer {
      * 绘制玩家
      */
     private renderPlayer(player: PlayerEntity) {
-        const x = player.pos.col * this.cellSize;
-        const y = player.pos.row * this.cellSize;
+        const x = player.col * this.cellSize;
+        const y = player.row * this.cellSize;
 
         this.ctx.fillStyle = '#3bc0db';
         this.ctx.shadowBlur = 15;

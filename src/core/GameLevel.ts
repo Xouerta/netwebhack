@@ -38,7 +38,7 @@ export class GameLevel {
         // 生成怪物
         this.state.monsters = this.spawnMonsters(level);
 
-        const {row, col} = this.state.player.pos;
+        const {row, col} = this.state.player;
         this.state.maze.set(row, col, 1);
 
         this.logSystem.addStairs(`🏰 进入第 ${level} 层`);

@@ -22,8 +22,8 @@ export class MonsterAI {
 
         const playerPower = this.state.player.getPower();
         const newMonsters: MobEntity[] = [];
-        const playerRow = this.state.player.pos.row;
-        const playerCol = this.state.player.pos.col;
+        const playerRow = this.state.player.row;
+        const playerCol = this.state.player.col;
 
         for (let m of this.state.monsters) {
             if (m.type === 'boss') {
@@ -42,8 +42,8 @@ export class MonsterAI {
      */
     private checkAdjacentMonsters() {
         const adjacentMonsters = this.state.monsters.filter(m =>
-            Math.abs(m.pos.row - this.state.player.pos.row) +
-            Math.abs(m.pos.col - this.state.player.pos.col) === 1
+            Math.abs(m.row - this.state.player.row) +
+            Math.abs(m.col - this.state.player.col) === 1
         );
 
         return adjacentMonsters.length > 0 ? adjacentMonsters[0] : null;
@@ -53,7 +53,7 @@ export class MonsterAI {
      * 移动普通怪物
      */
     private moveNormalMonster(monster: MobEntity, playerPower: number, playerRow: number, playerCol: number, newMonsters: MobEntity[]) {
-        const dist = Math.abs(monster.pos.row - playerRow) + Math.abs(monster.pos.col - playerCol);
+        const dist = Math.abs(monster.row - playerRow) + Math.abs(monster.col - playerCol);
         const monsterPower = monster.getPower();
 
         if (dist <= 2) {
@@ -77,8 +77,8 @@ export class MonsterAI {
         let bestDist = 999;
 
         for (let [dr, dc] of this.dirs) {
-            let nr = monster.pos.row + dr;
-            let nc = monster.pos.col + dc;
+            let nr = monster.row + dr;
+            let nc = monster.col + dc;
 
             if (nr === playerRow && nc === playerCol) continue;
 
@@ -92,8 +92,8 @@ export class MonsterAI {
         }
 
         if (bestDir) {
-            monster.pos.row += bestDir[0];
-            monster.pos.col += bestDir[1];
+            monster.row += bestDir[0];
+            monster.col += bestDir[1];
             this.logSystem.addAI(`👾 ${monster.getName()}觉得比你强，追过来了`);
         }
 
@@ -108,8 +108,8 @@ export class MonsterAI {
         let bestDist = -1;
 
         for (let [dr, dc] of this.dirs) {
-            let nr = monster.pos.row + dr;
-            let nc = monster.pos.col + dc;
+            let nr = monster.row + dr;
+            let nc = monster.col + dc;
 
             if (nr === playerRow && nc === playerCol) continue;
 
@@ -123,8 +123,8 @@ export class MonsterAI {
         }
 
         if (bestDir) {
-            monster.pos.row += bestDir[0];
-            monster.pos.col += bestDir[1];
+            monster.row += bestDir[0];
+            monster.col += bestDir[1];
             this.logSystem.addAI(`🏃 ${monster.getName()}觉得打不过你，逃跑了`);
         }
 
@@ -140,15 +140,15 @@ export class MonsterAI {
 
         while (!moved && tries < 8) {
             let [dr, dc] = this.dirs[Math.floor(Math.random() * this.dirs.length)];
-            let nr = monster.pos.row + dr;
-            let nc = monster.pos.col + dc;
+            let nr = monster.row + dr;
+            let nc = monster.col + dc;
             tries++;
 
-            if (nr === this.state.player.pos.row && nc === this.state.player.pos.col) continue;
+            if (nr === this.state.player.row && nc === this.state.player.col) continue;
 
             if (this.canMoveTo(nr, nc, monster, newMonsters)) {
-                monster.pos.row = nr;
-                monster.pos.col = nc;
+                monster.row = nr;
+                monster.col = nc;
                 moved = true;
             }
         }
@@ -163,13 +163,13 @@ export class MonsterAI {
         if (row < 1 || row >= this.state.size - 1 ||
             col < 1 || col >= this.state.size - 1) return false;
         if (this.state.maze.get(row, col) !== 1) return false;
-        if (row === this.state.player.pos.row && col === this.state.player.pos.col) return false;
+        if (row === this.state.player.row && col === this.state.player.col) return false;
 
-        const occupiedByNew = newMonsters.some(m => m.pos.row === row && m.pos.col === col);
+        const occupiedByNew = newMonsters.some(m => m.row === row && m.col === col);
         if (occupiedByNew) return false;
 
         const occupiedByOld = this.state.monsters.some(
-            m => m !== currentMonster && m.pos.row === row && m.pos.col === col
+            m => m !== currentMonster && m.row === row && m.col === col
         );
         if (occupiedByOld) return false;
 

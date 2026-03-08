@@ -22,8 +22,8 @@ export class BossAI {
         let bestDist = 999;
 
         for (let [dr, dc] of this.dirs) {
-            let nr = monster.pos.row + dr;
-            let nc = monster.pos.col + dc;
+            let nr = monster.row + dr;
+            let nc = monster.col + dc;
 
             if (nr === playerPos.row && nc === playerPos.col) continue;
 
@@ -37,8 +37,8 @@ export class BossAI {
         }
 
         if (bestDir) {
-            monster.pos.row += bestDir[0];
-            monster.pos.col += bestDir[1];
+            monster.row += bestDir[0];
+            monster.col += bestDir[1];
             this.logSystem.addAI('👑 Boss向你靠近');
         }
 
@@ -54,13 +54,13 @@ export class BossAI {
 
         if (this.state.maze.get(row, col) !== 1) return false;
 
-        if (row === this.state.player.pos.row && col === this.state.player.pos.col) return false;
+        if (row === this.state.player.row && col === this.state.player.col) return false;
 
-        const occupiedByNew = newMonsters.some(m => m.pos.row === row && m.pos.col === col);
+        const occupiedByNew = newMonsters.some(m => m.row === row && m.col === col);
         if (occupiedByNew) return false;
 
         const occupiedByOld = this.state.monsters.some(
-            m => m !== currentMonster && m.pos.row === row && m.pos.col === col
+            m => m !== currentMonster && m.row === row && m.col === col
         );
         if (occupiedByOld) return false;
 

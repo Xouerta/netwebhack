@@ -59,7 +59,7 @@ export class EventSystem {
                         p.atk++;
                         // 召唤大怪
                         const newMonster = new MobEntity(
-                            p.pos.row, p.pos.col, 'big', 3, 3, 5
+                            p.row, p.col, 'big', 3, 3, 5
                         );
                         m.push(newMonster);
                         log("💪 摧毁陷阱，攻击+1，但召唤了一只大怪", 'event');
@@ -207,7 +207,7 @@ export class EventSystem {
                             log("🙏 祈祷应验！全属性+1", 'event');
                         } else {
                             const newMonster = new MobEntity(
-                                p.pos.row, p.pos.col, 'big', 4, 4, 8
+                                p.row, p.col, 'big', 4, 4, 8
                             );
                             m.push(newMonster);
                             log("🙏 祈祷招来了灾祸！一只大怪出现", 'event');

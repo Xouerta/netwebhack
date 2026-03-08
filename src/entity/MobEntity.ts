@@ -36,7 +36,7 @@ export class MobEntity extends Entity {
      * 克隆怪物（用于保存状态）
      */
     public clone() {
-        return new MobEntity(this.pos.row, this.pos.col, this.type, this.atk, this.def, this.getHealth());
+        return new MobEntity(this.row, this.col, this.type, this.atk, this.def, this.getHealth());
     }
 }
 

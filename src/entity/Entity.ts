@@ -1,4 +1,3 @@
-import type {Position} from "../core/Position.ts";
 import {clamp} from "../utils/math.ts";
 import type {NbtSerializable} from "../nbt/NbtSerializable.ts";
 import {type NbtCompound} from "../nbt/element/NbtCompound.ts";
@@ -9,7 +8,8 @@ export abstract class Entity implements NbtSerializable {
     private static readonly NEXT_ID = new AtomicInteger();
 
     public readonly id = Entity.NEXT_ID.getAndIncrement();
-    public readonly pos: Position;
+    public row: number;
+    public col: number;
     private maxHealth: number;
     private health: number;
 
@@ -17,7 +17,8 @@ export abstract class Entity implements NbtSerializable {
     public def: number;
 
     protected constructor(row: number, col: number, maxHealth: number, atk: number, def: number) {
-        this.pos = {row, col};
+        this.row = row;
+        this.col = col;
         this.maxHealth = maxHealth;
         this.health = maxHealth;
         this.atk = atk;
@@ -54,8 +55,8 @@ export abstract class Entity implements NbtSerializable {
 
     public readNBT(nbt: NbtCompound) {
         const pos = nbt.getInt16Array('pos');
-        this.pos.row = pos[0] ?? 1;
-        this.pos.col = pos[1] ?? 1;
+        this.row = pos[0] ?? 1;
+        this.col = pos[1] ?? 1;
 
         if (nbt.contains('maxHealth', NbtTypeId.Int8)) {
             this.setMaxHealth(nbt.getInt8('max_health'));
@@ -66,7 +67,7 @@ export abstract class Entity implements NbtSerializable {
     }
 
     public writeNBT(nbt: NbtCompound): NbtCompound {
-        nbt.putInt16Array('pos', this.pos.row, this.pos.col);
+        nbt.putInt16Array('pos', this.row, this.col);
 
         nbt.putInt8('max_health', this.maxHealth);
         nbt.putInt8('health', this.health);
