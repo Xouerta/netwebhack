@@ -4,20 +4,20 @@
  */
 import {RNG} from "../utils/rng.ts";
 
-export const Seed = {
+export class Seed {
     /**
      * 格式化种子为 XXXX-XXXX-XXXX 格式
      */
-    format(p1: string, p2: string, p3: string) {
+    public static format(p1: string, p2: string, p3: string) {
         return p1.toUpperCase().padEnd(4, 'A').slice(0, 4) + '-' +
             p2.toUpperCase().padEnd(4, 'A').slice(0, 4) + '-' +
             p3.toUpperCase().padEnd(4, 'A').slice(0, 4);
-    },
+    }
 
     /**
      * 规范化用户输入的种子
      */
-    normalize(raw: string) {
+    public static normalize(raw: string) {
         const cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
         const parts = cleaned.split('-').filter(p => p.length > 0);
         if (parts.length === 0) return "AI-GROW-5LVL";
@@ -28,24 +28,24 @@ export const Seed = {
         }
 
         return this.format(segs[0] || "A", segs[1] || "A", segs[2] || "A");
-    },
+    }
 
     /**
      * 将种子字符串哈希为整数
      */
-    hash(seedStr: string) {
+    public static hash(seedStr: string) {
         let h = 0;
         for (let i = 0; i < seedStr.length; i++) {
             h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
         }
         return Math.abs(h) + 1;
-    },
+    }
 
     /**
      * 从种子创建多个独立的随机数生成器
      * 用于迷宫、物品、怪物、事件等不同系统
      */
-    createRNGs(seedStr: string) {
+    public static createRNGs(seedStr: string) {
         const baseHash = this.hash(seedStr);
         return {
             maze: RNG.create(baseHash),
@@ -55,4 +55,4 @@ export const Seed = {
             event: RNG.create(baseHash + 44444)
         };
     }
-};
+}

@@ -1,24 +1,25 @@
 import {GameState} from "../core/GameState.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
+import type {Game} from "../core/Game.ts";
 
-export class MonsterAI {
+export class MobAi {
+    private static readonly DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    private readonly game: Game;
     private readonly state: GameState;
     private readonly logSystem: LogSystem;
-    private readonly dirs: number[][];
 
-    public constructor(gameState: GameState, logSystem: LogSystem) {
+    public constructor(game: Game, gameState: GameState, logSystem: LogSystem) {
+        this.game = game;
         this.state = gameState;
         this.logSystem = logSystem;
-        this.dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
     }
 
     /**
      * 移动所有怪物
      */
     public moveAllMonsters() {
-        if (this.state.gameWin || this.state.gameOver ||
-            this.state.waitingForEvent || this.state.inCombat) return;
+        if (this.game.cannotAct()) return;
 
         const playerPower = this.state.player.getPower();
         const newMonsters: MobEntity[] = [];
@@ -26,8 +27,7 @@ export class MonsterAI {
         const playerCol = this.state.player.col;
 
         for (let m of this.state.monsters) {
-            if (m.type === 'boss') {
-            } else {
+            if (m.type !== 'boss') {
                 this.moveNormalMonster(m, playerPower, playerRow, playerCol, newMonsters);
             }
         }
@@ -35,6 +35,29 @@ export class MonsterAI {
         this.state.monsters = newMonsters;
 
         return this.checkAdjacentMonsters();
+    }
+
+    private checkLineOfSight(r1: number, c1: number, r2: number, c2: number): boolean {
+        // 如果在同一行
+        if (r1 === r2) {
+            const minC = Math.min(c1, c2);
+            const maxC = Math.max(c1, c2);
+            for (let c = minC + 1; c < maxC; c++) {
+                if (this.state.maze.get(r1, c) !== 1) return false; // 有墙
+            }
+            return true;
+        }
+
+        // 如果在同一列
+        if (c1 === c2) {
+            const minR = Math.min(r1, r2);
+            const maxR = Math.max(r1, r2);
+            for (let r = minR + 1; r < maxR; r++) {
+                if (this.state.maze.get(r, c1) !== 1) return false; // 有墙
+            }
+            return true;
+        }
+        return Math.abs(r1 - r2) + Math.abs(c1 - c2) <= 2;
     }
 
     /**
@@ -56,17 +79,33 @@ export class MonsterAI {
         const dist = Math.abs(monster.row - playerRow) + Math.abs(monster.col - playerCol);
         const monsterPower = monster.getPower();
 
-        if (dist <= 2) {
-            if (monsterPower > playerPower) {
-                this.chasePlayer(monster, playerRow, playerCol, newMonsters);
-            } else if (monsterPower < playerPower) {
-                this.fleeFromPlayer(monster, playerRow, playerCol, newMonsters);
-            } else {
-                this.randomMove(monster, newMonsters);
-            }
-        } else {
-            this.randomMove(monster, newMonsters);
+        const hasLineOfSight = this.checkLineOfSight(monster.row, monster.col, playerRow, playerCol);
+
+        let shouldChase = false;
+        let shouldFlee = false;
+
+        if (dist <= 4 && hasLineOfSight) {
+            if (monsterPower > playerPower) shouldChase = true;
+            else if (monsterPower < playerPower) shouldFlee = true;
         }
+
+        if (dist <= 2) {
+            if (monsterPower > playerPower) shouldChase = true;
+            else if (monsterPower < playerPower) shouldFlee = true;
+        }
+
+        if (shouldChase && Math.random() > 0.8) {
+            this.chasePlayer(monster, playerRow, playerCol, newMonsters);
+            return;
+        }
+
+        if (shouldFlee) {
+            this.fleeFromPlayer(monster, playerRow, playerCol, newMonsters);
+            return;
+        }
+
+        // 默认随机移动
+        this.randomMove(monster, newMonsters);
     }
 
     /**
@@ -74,16 +113,18 @@ export class MonsterAI {
      */
     private chasePlayer(monster: MobEntity, playerRow: number, playerCol: number, newMonsters: MobEntity[]) {
         let bestDir = null;
-        let bestDist = 999;
+        let bestDist = Infinity;
+        let currentDist = Math.abs(monster.row - playerRow) + Math.abs(monster.col - playerCol);
 
-        for (let [dr, dc] of this.dirs) {
-            let nr = monster.row + dr;
-            let nc = monster.col + dc;
+        for (const [dr, dc] of MobAi.DIRS) {
+            const nr = monster.row + dr;
+            const nc = monster.col + dc;
 
             if (nr === playerRow && nc === playerCol) continue;
 
             if (this.canMoveTo(nr, nc, monster, newMonsters)) {
-                let dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
+                const dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
+
                 if (dist < bestDist) {
                     bestDist = dist;
                     bestDir = [dr, dc];
@@ -91,10 +132,13 @@ export class MonsterAI {
             }
         }
 
-        if (bestDir) {
+        if (bestDir && bestDist < currentDist) {
             monster.row += bestDir[0];
             monster.col += bestDir[1];
             this.logSystem.addAI(`👾 ${monster.getName()}觉得比你强，追过来了`);
+        } else {
+            this.randomMove(monster, newMonsters);
+            return;
         }
 
         newMonsters.push(monster);
@@ -107,14 +151,14 @@ export class MonsterAI {
         let bestDir = null;
         let bestDist = -1;
 
-        for (let [dr, dc] of this.dirs) {
-            let nr = monster.row + dr;
-            let nc = monster.col + dc;
+        for (const [dr, dc] of MobAi.DIRS) {
+            const nr = monster.row + dr;
+            const nc = monster.col + dc;
 
             if (nr === playerRow && nc === playerCol) continue;
 
             if (this.canMoveTo(nr, nc, monster, newMonsters)) {
-                let dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
+                const dist = Math.abs(nr - playerRow) + Math.abs(nc - playerCol);
                 if (dist > bestDist) {
                     bestDist = dist;
                     bestDir = [dr, dc];
@@ -139,9 +183,9 @@ export class MonsterAI {
         let tries = 0;
 
         while (!moved && tries < 8) {
-            let [dr, dc] = this.dirs[Math.floor(Math.random() * this.dirs.length)];
-            let nr = monster.row + dr;
-            let nc = monster.col + dc;
+            const [dr, dc] = MobAi.DIRS[Math.floor(Math.random() * MobAi.DIRS.length)];
+            const nr = monster.row + dr;
+            const nc = monster.col + dc;
             tries++;
 
             if (nr === this.state.player.row && nc === this.state.player.col) continue;
@@ -162,6 +206,7 @@ export class MonsterAI {
     private canMoveTo(row: number, col: number, currentMonster: MobEntity, newMonsters: MobEntity[]) {
         if (row < 1 || row >= this.state.size - 1 ||
             col < 1 || col >= this.state.size - 1) return false;
+
         if (this.state.maze.get(row, col) !== 1) return false;
         if (row === this.state.player.row && col === this.state.player.col) return false;
 

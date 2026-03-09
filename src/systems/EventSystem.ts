@@ -230,6 +230,58 @@ export class EventSystem {
                     }
                 }
             ]
+        },
+        {
+            title: "隐藏的房间",
+            desc: "被厚重的防护门所隔离，传来不像的气息",
+            options: [
+                {
+                    text: "离开",
+                    effect: (_p, _m, log) => {
+                        log('你离开了这个看起来诡异的房间', 'event');
+                    }
+                },
+                {
+                    text: "观察",
+                    effect: (_p, _m, log) => {
+                        log('你看着这扇门发呆, 什么也没有发生', 'event');
+                    }
+                },
+                {
+                    text: "尝试推开",
+                    effect: (p, _m, log) => {
+                        if (Math.random() < 0.1) {
+                            p.atk++;
+                            log('你使劲推, 触发了什么东西, 一把剑掉落在你身旁', 'event');
+                        } else {
+                            log('门太重了, 你推不开', 'event');
+                        }
+                    }
+                },
+                {
+                    text: "炸了这扇破门",
+                    effect: (p, m, log) => {
+                        const rand = Math.random();
+                        if (rand < 0.01) {
+                            p.increaseMaxHp(1);
+                            p.def++;
+                            log('这是女神的遗迹, 你充满了决心', 'event');
+                        } else if (rand < 0.6) {
+                            const newMonster = new MobEntity(
+                                p.row, p.col, 'small', 4, 4, 8
+                            );
+                            m.push(newMonster);
+                            log('山体传来剧烈的震动, 一只小怪出现了', 'event');
+                        } else {
+                            if (p.atk > 1) p.atk--;
+                            if (p.def > 1) p.def--;
+                            p.increaseMaxHp(1);
+                            p.takeDamage(1);
+                            log('一阵古怪的香气充斥你的鼻腔...等你醒来, 你发现自己被拔得一干二净', 'event');
+                        }
+                    }
+                }
+            ]
         }
     ];
 

@@ -8,8 +8,8 @@ import type {Renderer} from "../ui/Renderer.ts";
 import type {ModalManager} from "../ui/Modal.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {GameLevel} from "./GameLevel.ts";
-import {MonsterAI} from "../ai/monsterAI.ts";
-import {BossAI} from "../ai/bossAI.ts";
+import {MobAi} from "../ai/MobAi.ts";
+import {BossAI} from "../ai/BossAI.ts";
 import {GameCombat} from "./GameCombat.ts";
 import {Seed} from "./Seed.ts";
 import {EventSystem} from "../systems/EventSystem.ts";
@@ -29,7 +29,7 @@ export class Game {
     public controls!: Controls;
     private inventoryUI!: InventoryUI;
     private levelManager!: GameLevel;
-    private monsterAI!: MonsterAI;
+    private monsterAI!: MobAi;
     public bossAI!: BossAI;
     private combatSystem!: GameCombat;
 
@@ -53,7 +53,7 @@ export class Game {
 
         // 初始化子模块
         this.levelManager = new GameLevel(this.state, this.rngs!, this.logSystem);
-        this.monsterAI = new MonsterAI(this.state, this.logSystem);
+        this.monsterAI = new MobAi(this, this.state, this.logSystem);
         this.bossAI = new BossAI(this.state, this.logSystem);
         this.combatSystem = new GameCombat(
             this.state, this.logSystem, this.modalManager, this.inventoryUI
