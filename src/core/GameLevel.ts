@@ -8,6 +8,7 @@ import {MobEntity, MonsterGenerator} from "../entity/MobEntity.ts";
 import {shuffleArray} from "../utils/math.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {MazeGenerator} from "./MazeGenerator.ts";
+import {Items} from "../item/Items.ts";
 
 export class GameLevel {
     private readonly state: GameState;
@@ -38,8 +39,14 @@ export class GameLevel {
         // 生成怪物
         this.state.monsters = this.spawnMonsters(level);
 
-        const {row, col} = this.state.player;
+        const player = this.state.player;
+        const {row, col} = player;
         this.state.maze.set(row, col, 1);
+        if (this.state.blessing < 2 && player.getHealth() <= 3) {
+            this.state.blessing++;
+            player.getInventory().addItem(Items.POTION);
+            this.logSystem.addEvent('女神的赐福! 获得一瓶恢复药剂');
+        }
 
         this.logSystem.addStairs(`🏰 进入第 ${level} 层`);
     }

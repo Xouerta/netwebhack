@@ -5,6 +5,7 @@
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import type {Maze} from "../core/Maze.ts";
+import {Items} from "../item/Items.ts";
 
 export class Renderer {
     private readonly canvas: HTMLCanvasElement;
@@ -82,13 +83,13 @@ export class Renderer {
         this.ctx.fillStyle = '#000000';
         this.ctx.shadowBlur = 8;
 
-        if (cell === 2) {
+        if (cell === Items.SWORD.type) {
             this.ctx.shadowColor = 'white';
             this.ctx.fillText('🗡️', x + 5, y + 18);
-        } else if (cell === 3) {
+        } else if (cell === Items.SHIELD.type) {
             this.ctx.shadowColor = '#ccc';
             this.ctx.fillText('🛡️', x + 5, y + 18);
-        } else if (cell === 4) {
+        } else if (cell === Items.POTION.type) {
             this.ctx.shadowColor = 'red';
             this.ctx.fillText('🧴', x + 5, y + 18);
         } else if (cell === 6) {

@@ -5,5 +5,5 @@ export interface Stats {
     itemsCollected: number;
     eventsTriggered: number;
     steps: number;
-    startTime: number
+    startTime: number;
 }

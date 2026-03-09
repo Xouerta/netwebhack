@@ -18,11 +18,11 @@ export const Seed = {
      * 规范化用户输入的种子
      */
     normalize(raw: string) {
-        let cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
-        let parts = cleaned.split('-').filter(p => p.length > 0);
+        const cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+        const parts = cleaned.split('-').filter(p => p.length > 0);
         if (parts.length === 0) return "AI-GROW-5LVL";
 
-        let segs = ["", "", ""];
+        const segs = ["", "", ""];
         for (let i = 0; i < Math.min(parts.length, 3); i++) {
             segs[i] = parts[i];
         }

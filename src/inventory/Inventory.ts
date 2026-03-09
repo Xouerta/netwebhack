@@ -1,24 +1,43 @@
-import type {ItemStack} from "../item/ItemStack.ts";
 import type {Item} from "../item/Item.ts";
 
-export interface Inventory {
-    length(): number;
+export class Inventory {
+    private readonly items: Item[] = [];
+    private maxSize: number;
 
-    isEmpty(): boolean;
+    public constructor(maxSize: number) {
+        this.maxSize = maxSize;
+    }
 
-    getStack(slot: number): ItemStack;
+    public addItem(item: Item) {
+        if (this.items.length >= this.maxSize) {
+            return false;
+        }
 
-    removeStack(slot: number, amount?: number): ItemStack;
+        this.items.push(item);
+        return true;
+    }
 
-    setStack(slot: number, stack: ItemStack): void;
+    public removeIndex(index: number): Item | null {
+        if (index < 0 || index >= this.items.length) {
+            return null;
+        }
 
-    getMaxCountPerStack(): number;
+        return this.items.splice(index, 1)[0];
+    }
 
-    getMaxCount(stack: ItemStack): number;
+    public removeItem(item: Item): Item | null {
+        return this.removeIndex(this.findItem(item));
+    }
 
-    markDirty(): void;
+    public findItem(item: Item): number {
+        return this.items.indexOf(item);
+    }
 
-    count(item: Item): number;
+    public getItems() {
+        return this.items;
+    }
 
-    containsAny(): boolean;
+    public isFull() {
+        return this.items.length >= this.maxSize;
+    }
 }

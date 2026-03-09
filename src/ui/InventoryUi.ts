@@ -3,6 +3,7 @@
  * 管理左侧背包栏的显示和交互
  */
 import type {Game} from "../core/Game.ts";
+import type {Inventory} from "../inventory/Inventory.ts";
 
 export class InventoryUI {
     private readonly container: HTMLElement;
@@ -21,13 +22,13 @@ export class InventoryUI {
         this.game = game;
         this.slots = [];
 
-        this._createInventoryUI();
+        this.createInventoryUI();
     }
 
     /**
      * 创建背包UI
      */
-    _createInventoryUI() {
+    private createInventoryUI() {
         this.container.innerHTML = '';
         this.container.className = 'inventory-panel';
 
@@ -46,7 +47,7 @@ export class InventoryUI {
         // 快捷栏提示
         const shortcutHint = document.createElement('div');
         shortcutHint.className = 'inventory-hint';
-        shortcutHint.innerHTML = '1:血药 2:剑 3:盾 D:丢弃';
+        shortcutHint.innerHTML = '1:血药 2:剑 3:盾 Q:丢弃';
         this.container.appendChild(shortcutHint);
 
         // 使用按钮区域
@@ -70,7 +71,7 @@ export class InventoryUI {
 
         const dropBtn = document.createElement('button');
         dropBtn.className = 'inventory-btn drop';
-        dropBtn.innerHTML = '🗑️ 丢弃 (D)';
+        dropBtn.innerHTML = '🗑️ 丢弃 (Q)';
         dropBtn.onclick = () => this.game.openDropItemModal();
 
         buttonArea.appendChild(usePotionBtn);
@@ -88,13 +89,14 @@ export class InventoryUI {
     /**
      * 更新背包显示
      */
-    updateInventory(inventory: any[]) {
+    public updateInventory(inventory: Inventory) {
         if (!this.itemList || !this.spaceSpan) return;
 
+        const items = inventory.getItems();
         this.itemList.innerHTML = '';
-        this.spaceSpan.innerText = inventory.length + '/10';
+        this.spaceSpan.innerText = items.length + '/10';
 
-        if (inventory.length === 0) {
+        if (items.length === 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'inventory-empty';
             emptyMsg.textContent = '空空如也';
@@ -102,39 +104,11 @@ export class InventoryUI {
             return;
         }
 
-        inventory.forEach((item) => {
+        items.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
-
-            const icon = this._getItemIcon(item.type);
-            const name = this._getItemName(item.type);
-
-            itemDiv.innerHTML = `${icon} ${name}`;
+            itemDiv.innerHTML = `${item.icon} ${item.displayName}`;
             this.itemList?.appendChild(itemDiv);
         });
-    }
-
-    /**
-     * 获取物品图标
-     */
-    _getItemIcon(type: string) {
-        const icons: Record<string, string> = {
-            'sword': '🗡️',
-            'shield': '🛡️',
-            'potion': '🧴'
-        };
-        return icons[type] || '📦';
-    }
-
-    /**
-     * 获取物品名称
-     */
-    _getItemName(type: string) {
-        const names: Record<string, string> = {
-            'sword': '剑',
-            'shield': '盾',
-            'potion': '血药'
-        };
-        return names[type] || type;
     }
 }

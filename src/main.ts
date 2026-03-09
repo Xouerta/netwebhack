@@ -3,8 +3,11 @@ import {Game} from "./core/Game.ts";
 import {Renderer} from "./ui/Renderer.ts";
 import {ModalManager} from "./ui/Modal.ts";
 import {InventoryUI} from "./ui/InventoryUi.ts";
+import {SoundSystem} from "./systems/SoundSystem.ts";
 
 document.addEventListener('DOMContentLoaded', () => {
+    SoundSystem.init();
+
     // 初始化各个模块
     const game = new Game();
     const renderer = new Renderer(document.getElementById('gameCanvas') as HTMLCanvasElement, game.state.size, 25);
@@ -24,14 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
         game.loadWorld(seed);
     });
 
-    document.getElementById('randomSeed')!.addEventListener('click', () => {
+    const genSeed = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         const p = () => chars[Math.floor(Math.random() * chars.length)];
         const seed = `${p()}${p()}${p()}${p()}-${p()}${p()}${p()}${p()}-${p()}${p()}${p()}${p()}`;
 
         const input = document.getElementById('seedInput') as HTMLInputElement;
         input.value = seed;
-        game.loadWorld(seed);
+        return seed;
+    };
+    document.getElementById('randomSeed')!.addEventListener('click', () => {
+        game.loadWorld(genSeed());
     });
 
     document.getElementById('resetGame')!.addEventListener('click', () => {
@@ -45,5 +51,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 加载默认世界
-    game.loadWorld('BAG-5LVL-001');
+    game.loadWorld(genSeed());
 }, {once: true});

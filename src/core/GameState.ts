@@ -4,7 +4,6 @@ import type {Position} from "./Position.ts";
 import type {Supplier} from "../types.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import {Maze} from "./Maze.ts";
-import type {ItemType} from "../inventory/ItemType.ts";
 
 export class GameState {
     public static readonly TOTAL_LEVELS = 5;
@@ -17,6 +16,7 @@ export class GameState {
     public readonly maze: Maze;
     public monsters: MobEntity[];
     public stairsPos: Position;
+    public blessing: number = 0;
 
     public gameWin: boolean;
     public gameOver: boolean;
@@ -45,7 +45,7 @@ export class GameState {
             itemsCollected: 0,
             eventsTriggered: 0,
             steps: 0,
-            startTime: Date.now()
+            startTime: Date.now(),
         };
     }
 
@@ -60,6 +60,7 @@ export class GameState {
         this.waitingForEvent = false;
         this.inCombat = false;
         this.currentItemCell = null;
+        this.blessing = 0;
 
         this.stats = {
             smallKills: 0,
@@ -68,7 +69,7 @@ export class GameState {
             itemsCollected: 0,
             eventsTriggered: 0,
             steps: 0,
-            startTime: Date.now()
+            startTime: Date.now(),
         };
     }
 
@@ -127,29 +128,5 @@ export class GameState {
         }
 
         return indices;
-    }
-
-    /**
-     * 从格子类型获取物品类型
-     */
-    public getItemTypeFromCell(cell: number): ItemType {
-        const map: Record<number, ItemType> = {
-            2: 'sword',
-            3: 'shield',
-            4: 'potion'
-        };
-        return map[cell];
-    }
-
-    /**
-     * 获取物品类型名称
-     */
-    public getItemTypeName(cell: number): string {
-        const map: Record<number, string> = {
-            2: '🗡️ 剑',
-            3: '🛡️ 盾',
-            4: '🧴 血药'
-        };
-        return map[cell];
     }
 }

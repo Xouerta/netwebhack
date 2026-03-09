@@ -17,6 +17,7 @@ import {Controls} from "../ui/Controls.ts";
 import type {InventoryUI} from "../ui/InventoryUi.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 import {SoundSystem} from "../systems/SoundSystem.ts";
+import {Items} from "../item/Items.ts";
 
 export class Game {
     public readonly state: GameState;
@@ -139,27 +140,29 @@ export class Game {
         }
 
         const {row, col, type} = this.state.currentItemCell;
-        const itemType = this.state.getItemTypeFromCell(type);
+        const item = Items.getItem(type);
+        if (!item) {
+            this.logSystem.addItem('未知物品, 无法拾取');
+            return false;
+        }
 
-        if (this.state.player.isInventoryFull()) {
+        const inventory = this.state.player.getInventory();
+        if (inventory.isFull()) {
             this.logSystem.addItem('❌ 背包已满，无法拾取');
             return false;
         }
 
-        const added = this.state.player.addToInventory(itemType);
-
+        const added = inventory.addItem(item);
         if (added) {
             // 从地图上移除物品
             this.state.maze.set(row, col, 1);
             this.state.stats.itemsCollected++;
 
-            this.logSystem.addItem(
-                `📦 拾取 ${this.state.player.getItemDisplayName(itemType)} 放入背包`
-            );
+            this.logSystem.addItem(`📦 拾取 ${item.displayName} 放入背包`);
             this.state.currentItemCell = null;
 
             // 更新UI
-            this.inventoryUI.updateInventory(this.state.player.getInventory());
+            this.inventoryUI.updateInventory(inventory);
             this.state.updateUI();
             this.render();
             return true;
@@ -175,13 +178,16 @@ export class Game {
         if (this.cannotAct()) return false;
 
         const used = this.state.player.usePotion();
-        if (used) {
+        if (used === 1) {
             this.logSystem.addItem('🧴 使用血药，生命+1');
-            SoundSystem.play('/sound/bottle_empty.ogg');
+            SoundSystem.play('potion');
             this.updateAndRender();
             return true;
-        } else {
+        } else if (used === 0) {
             this.logSystem.addItem('❌ 背包中没有血药');
+            return false;
+        } else if (used === 2) {
+            this.logSystem.addItem('❌ 血量已满');
             return false;
         }
     }
@@ -195,6 +201,7 @@ export class Game {
         const used = this.state.player.useSword();
         if (used) {
             this.logSystem.addItem('🗡️ 使用剑，攻击+1');
+            SoundSystem.play('sword');
             this.updateAndRender();
             return true;
         } else {
@@ -212,7 +219,7 @@ export class Game {
         const used = this.state.player.useShield();
         if (used) {
             this.logSystem.addItem('🛡️ 使用盾，防御+1');
-            SoundSystem.play('/sound/armor.ogg');
+            SoundSystem.play('armor');
             this.updateAndRender();
             return true;
         } else {
@@ -228,11 +235,12 @@ export class Game {
         if (this.cannotAct()) return;
 
         const inventory = this.state.player.getInventory();
-        this.modalManager.showDropItemModal(inventory, (index: number) => {
-            const dropped = this.state.player.removeFromInventory(index);
+        this.modalManager.showDropItemModal(inventory, index => {
+            const inventory = this.state.player.getInventory()
+            const dropped = inventory.removeIndex(index);
             if (dropped) {
                 this.logSystem.addItem(
-                    `🗑️ 丢弃 ${this.state.player.getItemDisplayName(dropped.type)}`
+                    `🗑️ 丢弃 ${dropped.displayName}`
                 );
                 this.inventoryUI.updateInventory(this.state.player.getInventory());
                 this.render();
@@ -297,18 +305,21 @@ export class Game {
      */
     private handleCellContent(row: number, col: number) {
         const cell = this.state.maze.get(row, col);
-
-        if (cell >= 2 && cell <= 4) {
+        if (cell >= 0x10 && cell <= 0x20) {
             // 物品 - 设置当前物品，等待回车拾取
             this.state.currentItemCell = {row, col, type: cell};
-            this.logSystem.addItem(
-                `⏎ 按下回车键拾取 ${this.state.getItemTypeName(cell)}`
-            );
-        } else if (cell === 6) {
+            const item = Items.getItem(cell);
+            const name = item ? `${item.icon} ${item.displayName}` : `物品`;
+            this.logSystem.addItem(`⏎ 按下回车键拾取 ${name}`);
+            return;
+        }
+        if (cell === 6) {
             // 随机事件
             this.state.maze.set(row, col, 1);
             this.triggerRandomEvent();
-        } else if (cell === 7) {
+            return;
+        }
+        if (cell === 7) {
             // 楼梯
             this.tryGoDown();
         }
@@ -323,7 +334,7 @@ export class Game {
             this.state.monsters,
             this.state.stats,
             (msg: string, type: string) => this.logSystem.add(msg, type),
-            (action: string) => {
+            action => {
                 if (action === 'gameOver') {
                     this.state.gameOver = true;
                     const score = ScoreSystem.calculate(

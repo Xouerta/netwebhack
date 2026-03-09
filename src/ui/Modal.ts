@@ -5,6 +5,8 @@
 import {type Score} from "../systems/score/Score.ts";
 import type {Consumer} from "../types.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
+import type {Inventory} from "../inventory/Inventory.ts";
+import type {Item} from "../item/Item.ts";
 
 export class ModalManager {
     private readonly eventModal: HTMLElement;
@@ -102,7 +104,7 @@ export class ModalManager {
     /**
      * 显示确认弹窗
      */
-    public showConfirmModal(message: string, callback: Consumer<any>) {
+    public showConfirmModal(message: string, callback: Consumer<boolean>) {
         this.confirmMessage.innerText = message;
         this.confirmCallback = callback;
 
@@ -127,29 +129,29 @@ export class ModalManager {
 
     /**
      * 显示丢弃物品弹窗
-     * @param {Array} inventory - 背包物品数组
+     * @param {Inventory} inventory - 背包物品数组
      * @param {Function} onDrop - 丢弃回调函数，接收物品索引
      */
-    public showDropItemModal(inventory: Array<any>, onDrop: Function) {
+    public showDropItemModal(inventory: Inventory, onDrop: Consumer<number>) {
         if (!this.dropItemModal) {
             console.error('丢弃物品弹窗元素不存在');
             return;
         }
 
-        this.dropItemList.innerHTML = '';
-
-        if (inventory.length === 0) {
+        this.dropItemList.textContent = '';
+        const items = inventory.getItems();
+        if (items.length === 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'drop-item-empty';
             emptyMsg.textContent = '背包空空如也';
             this.dropItemList.appendChild(emptyMsg);
         } else {
-            inventory.forEach((item, index) => {
+            items.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'drop-item';
 
                 const nameSpan = document.createElement('span');
-                nameSpan.textContent = this.getItemDisplayName(item.type);
+                nameSpan.textContent = `${item.icon} ${item.name}`;
 
                 const dropBtn = document.createElement('button');
                 dropBtn.className = 'drop-btn';
@@ -182,37 +184,15 @@ export class ModalManager {
 
     /**
      * 显示拾取确认弹窗
-     * @param {string} itemType - 物品类型
+     * @param {Item} item - 物品类型
      * @param {Function} onConfirm - 确认回调
      * @param {Function} onCancel - 取消回调
      */
-    public showPickupConfirmModal(itemType: string, onConfirm: Function, onCancel: Function) {
-        const itemName = this.getItemDisplayName(itemType);
+    public showPickupConfirmModal(item: Item, onConfirm: Function, onCancel: Function) {
         this.showConfirmModal(
-            `是否拾取 ${itemName}？\n(按回车确认，按ESC取消)`,
-            (confirmed) => {
-                if (confirmed) {
-                    onConfirm();
-                } else {
-                    onCancel();
-                }
-            }
+            `是否拾取 ${item.icon} ${item.displayName}?\n(按回车确认，按ESC取消)`,
+            (confirmed) => confirmed ? onConfirm() : onCancel()
         );
-    }
-
-    /**
-     * 获取物品显示名称
-     */
-    private getItemDisplayName(itemType: string) {
-        const names: Record<string, string> = {
-            'sword': '🗡️ 剑',
-            'shield': '🛡️ 盾',
-            'potion': '🧴 血药',
-            'big': '👾 大怪',
-            'small': '👾 小怪',
-            'boss': '👑 Boss'
-        };
-        return names[itemType] ?? itemType;
     }
 
     /**

@@ -91,9 +91,9 @@ export class MazeGenerator {
 
             // 随机打通几个出口
             for (let tries = 0; tries < 4; tries++) {
-                let doorX = x + Math.floor(rng() * w);
-                let doorY = y + Math.floor(rng() * h);
-                let dir = Math.floor(rng() * 4);
+                const doorX = x + Math.floor(rng() * w);
+                const doorY = y + Math.floor(rng() * h);
+                const dir = Math.floor(rng() * 4);
 
                 if (dir === 0 && doorY > 2) {
                     maze.set(doorY - 1, doorX, 1);
@@ -166,8 +166,9 @@ export class MazeGenerator {
 
         // 放置道具（剑、盾、血药）
         const itemCount = 3 + level + Math.floor(rng() * 4);
+
         for (let i = 0; i < itemCount && i < free.length; i++) {
-            const type = Math.floor(rng() * 3) + 2; // 2,3,4
+            const type = Math.floor(rng() * 3) + 0x10;
             maze.set(free[i][0], free[i][1], type);
         }
 

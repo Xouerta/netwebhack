@@ -17,7 +17,7 @@ export class BossAI {
     /**
      * 移动Boss
      */
-    moveBoss(monster: MobEntity, playerPos: Position, newMonsters: MobEntity[]) {
+    public moveBoss(monster: MobEntity, playerPos: Position, newMonsters: MobEntity[]) {
         let bestDir = null;
         let bestDist = 999;
 

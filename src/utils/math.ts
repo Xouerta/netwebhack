@@ -51,3 +51,7 @@ export function getCell(array: Uint8Array, size: number, row: number, col: numbe
 export function setCell(array: Uint8Array, size: number, row: number, col: number, value: number): void {
     array[row * size + col] = value;
 }
+
+export function randInt(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

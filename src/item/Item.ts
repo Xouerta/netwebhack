@@ -1,4 +1,6 @@
 export interface Item {
-    type: 'sword' | 'shield' | 'potion';
-    id: string;
+    type: number;
+    name: string;
+    displayName: string;
+    icon: string;
 }

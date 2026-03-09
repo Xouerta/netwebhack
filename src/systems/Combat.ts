@@ -22,7 +22,7 @@ export class CombatSystem {
         if (Math.random() < 0.2) {
             baseDamage += Math.random() < 0.5 ? 1 : -1;
         }
-        return Math.max(1, baseDamage);
+        return baseDamage >>> 0;
     }
 
     /**
@@ -35,7 +35,7 @@ export class CombatSystem {
         const died = mob.isDead();
 
         gameCallbacks.addLog(`⚔️ 你对${mob.getName()}造成 ${damage} 点伤害 (${mob.getName()} HP: ${oldHp}→${mob.getHealth()})`, 'fight');
-        SoundSystem.play('/sound/attack.ogg');
+        SoundSystem.play('attack');
         return {damage, died};
     }
 
@@ -45,9 +45,10 @@ export class CombatSystem {
     public static monsterAttack(mob: MobEntity, player: PlayerEntity, gameCallbacks: FightCallback) {
         const damage = this.calculateDamage(mob.atk, player.def);
         const oldHp = player.getHealth();
-        player.takeDamage(damage)
+        player.takeDamage(damage);
         const died = player.isDead();
 
+        if (damage === 0) SoundSystem.play('block');
         gameCallbacks.addLog(`💥 ${mob.getName()}反击，对你造成 ${damage} 点伤害 (你的HP: ${oldHp}→${player.getHealth()})`, 'fight');
 
         return {damage, died};

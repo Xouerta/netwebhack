@@ -47,24 +47,23 @@ export class Controls {
         }
 
         // 数字键使用物品（1-3）
-        if (key >= '1' && key <= '3') {
+        if (e.key >= '1' && e.key <= '3') {
             e.preventDefault();
             if (this.game.cannotAct()) return;
 
-            const num = parseInt(key);
             // 1: 血药, 2: 剑, 3: 盾
-            if (num === 1) {
+            if (e.key === '1') {
                 this.game.usePotion();
-            } else if (num === 2) {
+            } else if (e.key === '2') {
                 this.game.useSword();
-            } else if (num === 3) {
+            } else if (e.key === '3') {
                 this.game.useShield();
             }
             return;
         }
 
         // D键打开丢弃物品界面
-        if (key === 'd' || key === 'D') {
+        if (key === 'KeyQ') {
             e.preventDefault();
             if (this.game.cannotAct()) return;
             this.game.openDropItemModal();
