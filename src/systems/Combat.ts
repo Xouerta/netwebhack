@@ -13,9 +13,6 @@ export interface FightCallback {
 }
 
 export class CombatSystem {
-    /**
-     * 计算伤害
-     */
     public static calculateDamage(attackerAtk: number, defenderDef: number) {
         let baseDamage = Math.max(1, attackerAtk - defenderDef);
         // 20%概率±1伤害浮动
@@ -32,11 +29,9 @@ export class CombatSystem {
         const damage = this.calculateDamage(player.atk, mob.def);
         const oldHp = mob.getHealth();
         mob.takeDamage(damage);
-        const died = mob.isDead();
 
         gameCallbacks.addLog(`⚔️ 你对${mob.getName()}造成 ${damage} 点伤害 (${mob.getName()} HP: ${oldHp}→${mob.getHealth()})`, 'fight');
         SoundSystem.play('attack');
-        return {damage, died};
     }
 
     /**
@@ -46,12 +41,9 @@ export class CombatSystem {
         const damage = this.calculateDamage(mob.atk, player.def);
         const oldHp = player.getHealth();
         player.takeDamage(damage);
-        const died = player.isDead();
 
         if (damage === 0) SoundSystem.play('block');
         gameCallbacks.addLog(`💥 ${mob.getName()}反击，对你造成 ${damage} 点伤害 (你的HP: ${oldHp}→${player.getHealth()})`, 'fight');
-
-        return {damage, died};
     }
 
     /**
@@ -65,26 +57,51 @@ export class CombatSystem {
             stats.smallKills++;
         }
 
+        const baseChance = mob.type === 'big' ? 0.5 : 0.25;
+        let actualChance = baseChance + stats.upgradeLuck;
+
         // 概率提升属性
-        const upgradeChance = mob.type === 'big' ? 0.5 : 0.25;
-        if (Math.random() < upgradeChance) {
+        if (Math.random() < actualChance) {
+            this.giveUpgrade(mob, player, gameCallbacks);
+            stats.upgradeLuck = 0;
+        } else {
+            stats.upgradeLuck = stats.upgradeLuck + mob.type === 'big' ? 0.3 : 0.15;
+            stats.upgradeLuck = Math.min(1.0, stats.upgradeLuck);
+            if (stats.upgradeLuck >= 0.9) {
+                gameCallbacks.addLog('💫 你感觉到命运正在眷顾你...', 'fight');
+            }
+        }
+    }
+
+    private static giveUpgrade(mob: MobEntity, player: PlayerEntity, gameCallbacks: FightCallback) {
+        // TODO 用损失血量计算
+        const hpRatio = player.getHealth() / player.getMaxHealth();
+        const isBrutalFight = hpRatio < 0.3;
+
+        let upgrades = 1;
+        if (mob.type === 'big' && isBrutalFight) {
+            upgrades = 2;
+            gameCallbacks.addLog(`🔥 险胜强敌! 获得双倍成长！`, 'fight');
+        }
+
+        for (let i = 0; i < upgrades; i++) {
             const r = Math.random();
             if (r < 0.33) {
                 player.atk++;
-                gameCallbacks.addLog(`✨ 击败${mob.getName()}，攻击+1`, 'fight');
+                gameCallbacks.addLog(`✨ ${mob.getName()}的战斗经验让你攻击 +1`, 'fight');
             } else if (r < 0.66) {
                 player.def++;
-                gameCallbacks.addLog(`✨ 击败${mob.getName()}，防御+1`, 'fight');
+                gameCallbacks.addLog(`✨ 从${mob.getName()}身上学会了防御技巧, 防御 +1`, 'fight');
             } else {
                 player.increaseMaxHp(1);
-                gameCallbacks.addLog(`✨ 击败${mob.getName()}，生命上限+1`, 'fight');
+                gameCallbacks.addLog(`✨ 战胜${mob.getName()}后, 你的生命力变得更顽强, 生命上限 +1`, 'fight');
             }
         }
     }
 
     /**
      * 完整的战斗回合
-     * @returns {Object} 战斗结果
+     * @returns {number} 战斗结果
      */
     public static fight(
         player: PlayerEntity,
@@ -92,26 +109,24 @@ export class CombatSystem {
         mobs: MobEntity[],
         index: number,
         stats: Stats,
-        gameCallbacks: FightCallback) {
+        gameCallbacks: FightCallback): number {
         // 玩家攻击
-        const attackResult = this.playerAttack(player, mob, gameCallbacks);
-
-        if (attackResult.died) {
+        this.playerAttack(player, mob, gameCallbacks);
+        if (mob.isDead()) {
             if (mob.type === 'boss') {
-                return {bossDefeated: true};
+                return 3;
             }
             mobs.splice(index, 1);
             this.handleDefeat(mob, player, stats, gameCallbacks);
-            return {monsterDefeated: true};
+            return 2;
         }
 
         // 怪物反击
-        const counterResult = this.monsterAttack(mob, player, gameCallbacks);
-
-        if (counterResult.died) {
-            return {playerDefeated: true};
+        this.monsterAttack(mob, player, gameCallbacks);
+        if (player.isDead()) {
+            return 1;
         }
 
-        return {fightOngoing: true};
+        return 0;
     }
 }

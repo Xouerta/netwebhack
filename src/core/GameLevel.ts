@@ -42,10 +42,10 @@ export class GameLevel {
         const player = this.state.player;
         const {row, col} = player;
         this.state.maze.set(row, col, 1);
-        if (this.state.blessing < 2 && player.getHealth() <= 3) {
-            this.state.blessing++;
+        if (this.state.stats.blessing < 2 && player.getHealth() <= 3) {
+            this.state.stats.blessing++;
             player.getInventory().addItem(Items.POTION);
-            this.logSystem.addEvent('女神的赐福! 获得一瓶恢复药剂');
+            this.logSystem.addEvent('💫 女神的赐福! 获得一瓶恢复药剂');
         }
 
         this.logSystem.addStairs(`🏰 进入第 ${level} 层`);
@@ -61,13 +61,20 @@ export class GameLevel {
 
         const mobs: MobEntity[] = [];
         const allFreeCells = this.state.getFreeCellsForMonsters();
+        if (allFreeCells.length === 0) return [];
 
+        const mazeSize = this.state.maze.getSize();
+        const safePath = MazeGenerator.computeSafePath(this.state.maze, this.state.stairsPos);
+        const filteredCells = allFreeCells.filter(([r, c]) => {
+            const idx = r * mazeSize + c;
+            return !safePath.has(idx);
+        });
         if (allFreeCells.length === 0) return [];
 
         const monsterCount = Math.min(
             5 + level * 2 + Math.floor(this.rngs.monster() * 4),
             GameState.MAX_MOB_CAP,
-            allFreeCells.length
+            filteredCells.length
         );
 
         const bigMonsterCount = Math.floor(monsterCount * (0.2 + level * 0.1));
@@ -76,7 +83,7 @@ export class GameLevel {
         const nearCells: number[][] = [];
         const farCells: number[][] = [];
 
-        for (const cell of allFreeCells) {
+        for (const cell of filteredCells) {
             const dist = this.state.manhattanDistance(cell[0], cell[1], 1, 1);
             if (dist >= GameState.MIN_BIG_MOB_DISTANCE) {
                 farCells.push(cell);

@@ -156,22 +156,22 @@ export class EventSystem {
             desc: "一个神秘商人出现：'我可以帮你，但需要代价...'",
             options: [
                 {
-                    text: "🗡️ 买剑 (1攻击, 但花费2生命)",
+                    text: "🗡️ 买剑 (1 攻击, 但花费 1 生命)",
                     effect: (p, _m, log) => {
-                        if (p.getHealth() > 2) {
-                            p.takeDamage(2);
+                        if (p.getHealth() > 1) {
+                            p.takeDamage(1);
                             p.atk++;
-                            log("🗡️ 购买剑，攻击+1，生命-2", 'event');
+                            log("🗡️ 购买剑，攻击 +1，生命 -1", 'event');
                         }
                     }
                 },
                 {
-                    text: "🛡️ 买盾 (1防御, 但花费2生命)",
+                    text: "🛡️ 买盾 (1 防御, 但花费 1 生命)",
                     effect: (p, _m, log) => {
-                        if (p.getHealth() > 2) {
-                            p.takeDamage(2);
+                        if (p.getHealth() > 1) {
+                            p.takeDamage(1);
                             p.def++;
-                            log("🛡️ 购买盾，防御+1，生命-2", 'event');
+                            log("🛡️ 购买盾，防御+1，生命-1", 'event');
                         }
                     }
                 },

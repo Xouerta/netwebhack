@@ -6,6 +6,7 @@ import type {Supplier} from "../types.ts";
 import {shuffleArray} from "../utils/math.ts";
 import {UnionFind} from "../utils/UnionFind.ts";
 import {Maze} from "./Maze.ts";
+import type {Position} from "./Position.ts";
 
 export class MazeGenerator {
     /**
@@ -214,5 +215,54 @@ export class MazeGenerator {
             }
         }
         return free;
+    }
+
+    public static computeSafePath(maze: Maze, stairsPos: Position): Set<number> {
+        const size = maze.getSize();
+        const startIdx = size + 1; // (1,1)
+        const targetIdx = stairsPos.row * size + stairsPos.col;
+
+        if (startIdx === targetIdx) {
+            return new Set([startIdx]);
+        }
+
+        const queue: number[] = [startIdx];
+        const visited = new Set<number>();
+        const parent = new Map<number, number | null>();
+
+        visited.add(startIdx);
+        parent.set(startIdx, null);
+
+        const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+
+        while (queue.length > 0) {
+            const currIdx = queue.shift()!;
+            const r = Math.floor(currIdx / size);
+            const c = currIdx % size;
+
+            if (currIdx === targetIdx) {
+                const pathSet = new Set<number>();
+                let p: number | null = currIdx;
+                while (p !== null) {
+                    pathSet.add(p);
+                    p = parent.get(p)!;
+                }
+                return pathSet;
+            }
+
+            for (const [dr, dc] of dirs) {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size && maze.get(nr, nc) === 1) {
+                    const nidx = nr * size + nc;
+                    if (!visited.has(nidx)) {
+                        visited.add(nidx);
+                        parent.set(nidx, currIdx);
+                        queue.push(nidx);
+                    }
+                }
+            }
+        }
+
+        return new Set();
     }
 }

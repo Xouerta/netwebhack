@@ -1,5 +1,5 @@
 import {PlayerEntity} from "../entity/PlayerEntity.ts";
-import type {Stats} from "./Stats.ts";
+import {newStats, type Stats} from "./Stats.ts";
 import type {Position} from "./Position.ts";
 import type {Supplier} from "../types.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
@@ -16,7 +16,6 @@ export class GameState {
     public readonly maze: Maze;
     public monsters: MobEntity[];
     public stairsPos: Position;
-    public blessing: number = 0;
 
     public gameWin: boolean;
     public gameOver: boolean;
@@ -37,16 +36,7 @@ export class GameState {
         this.waitingForEvent = false;
         this.inCombat = false;
         this.currentItemCell = null;
-
-        this.stats = {
-            smallKills: 0,
-            bigKills: 0,
-            bossKilled: false,
-            itemsCollected: 0,
-            eventsTriggered: 0,
-            steps: 0,
-            startTime: Date.now(),
-        };
+        this.stats = newStats();
     }
 
     public reset() {
@@ -60,17 +50,8 @@ export class GameState {
         this.waitingForEvent = false;
         this.inCombat = false;
         this.currentItemCell = null;
-        this.blessing = 0;
 
-        this.stats = {
-            smallKills: 0,
-            bigKills: 0,
-            bossKilled: false,
-            itemsCollected: 0,
-            eventsTriggered: 0,
-            steps: 0,
-            startTime: Date.now(),
-        };
+        this.stats = newStats();
     }
 
     /**

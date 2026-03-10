@@ -26,7 +26,7 @@ export class GameCombat {
         if (this.state.inCombat) return;
         this.state.inCombat = true;
 
-        const monsterIdx = this.state.monsters.findIndex(m => m.id === mob.id);
+        const monsterIdx = this.state.monsters.indexOf(mob);
         if (monsterIdx === -1) {
             this.state.inCombat = false;
             return;
@@ -43,16 +43,14 @@ export class GameCombat {
             }
         );
 
-        if (result.bossDefeated) {
+        if (result === 3) {
             this.state.stats.bossKilled = true;
             this.state.gameWin = true;
             const score = ScoreSystem.calculate(
                 this.state.player, this.state.stats, this.state.currentLevel
             );
             this.modalManager.showGameOverModal(score, true);
-        }
-
-        if (result.playerDefeated) {
+        } else if (result === 1) {
             this.state.gameOver = true;
             const score = ScoreSystem.calculate(
                 this.state.player, this.state.stats, this.state.currentLevel

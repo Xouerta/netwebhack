@@ -57,7 +57,7 @@ export class MobAi {
             }
             return true;
         }
-        return Math.abs(r1 - r2) + Math.abs(c1 - c2) <= 2;
+        return false;
     }
 
     /**
@@ -84,7 +84,7 @@ export class MobAi {
         let shouldChase = false;
         let shouldFlee = false;
 
-        if (dist <= 4 && hasLineOfSight) {
+        if (dist <= 6 && hasLineOfSight) {
             if (monsterPower > playerPower) shouldChase = true;
             else if (monsterPower < playerPower) shouldFlee = true;
         }
@@ -94,8 +94,12 @@ export class MobAi {
             else if (monsterPower < playerPower) shouldFlee = true;
         }
 
-        if (shouldChase && Math.random() > 0.8) {
-            this.chasePlayer(monster, playerRow, playerCol, newMonsters);
+        if (shouldChase) {
+            if (Math.random() > 0.9) {
+                this.chasePlayer(monster, playerRow, playerCol, newMonsters);
+            } else {
+                this.randomMove(monster, newMonsters);
+            }
             return;
         }
 
@@ -135,7 +139,7 @@ export class MobAi {
         if (bestDir && bestDist < currentDist) {
             monster.row += bestDir[0];
             monster.col += bestDir[1];
-            this.logSystem.addAI(`👾 ${monster.getName()}觉得比你强，追过来了`);
+            this.logSystem.addAI(`👾 ${monster.getName()} 觉得比你强，追过来了`);
         } else {
             this.randomMove(monster, newMonsters);
             return;
