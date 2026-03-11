@@ -1,8 +1,8 @@
 import {LogSystem} from "./systems/LogSystem.ts";
 import {Game} from "./core/Game.ts";
-import {Renderer} from "./ui/Renderer.ts";
-import {ModalManager} from "./ui/Modal.ts";
-import {InventoryUI} from "./ui/InventoryUi.ts";
+import {Renderer} from "./render/Renderer.ts";
+import {ModalManager} from "./render/Modal.ts";
+import {InventoryUI} from "./render/InventoryUi.ts";
 import {SoundSystem} from "./systems/SoundSystem.ts";
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -7,6 +7,10 @@ export class Maze {
         this.size = size;
     }
 
+    inBounds(row: number, col: number): boolean {
+        return row >= 0 && row < this.size && col >= 0 && col < this.size;
+    }
+
     public set(row: number, col: number, value: number) {
         this.map[row * this.size + col] = value;
     }

@@ -17,17 +17,17 @@ export class BossAI {
     /**
      * 移动Boss
      */
-    public moveBoss(monster: MobEntity, playerPos: Position, newMonsters: MobEntity[]) {
+    public moveBoss(mob: MobEntity, playerPos: Position, newMonsters: MobEntity[]) {
         let bestDir = null;
         let bestDist = 999;
 
         for (let [dr, dc] of this.dirs) {
-            let nr = monster.row + dr;
-            let nc = monster.col + dc;
+            let nr = mob.row + dr;
+            let nc = mob.col + dc;
 
             if (nr === playerPos.row && nc === playerPos.col) continue;
 
-            if (this.canMoveTo(nr, nc, monster, newMonsters)) {
+            if (this.canMoveTo(nr, nc, mob, newMonsters)) {
                 let dist = Math.abs(nr - playerPos.row) + Math.abs(nc - playerPos.col);
                 if (dist < bestDist) {
                     bestDist = dist;
@@ -37,12 +37,11 @@ export class BossAI {
         }
 
         if (bestDir) {
-            monster.row += bestDir[0];
-            monster.col += bestDir[1];
+            mob.move(bestDir[0], bestDir[1]);
             this.logSystem.addAI('👑 Boss向你靠近');
         }
 
-        newMonsters.push(monster);
+        newMonsters.push(mob);
     }
 
     /**

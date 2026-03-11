@@ -8,8 +8,11 @@ export abstract class Entity implements NbtSerializable {
     private static readonly NEXT_ID = new AtomicInteger();
 
     public readonly id = Entity.NEXT_ID.getAndIncrement();
-    public row: number;
-    public col: number;
+    private _row: number;
+    private _col: number;
+    public pervRow: number;
+    public pervCol: number;
+
     private maxHealth: number;
     private health: number;
 
@@ -17,8 +20,11 @@ export abstract class Entity implements NbtSerializable {
     public def: number;
 
     protected constructor(row: number, col: number, maxHealth: number, atk: number, def: number) {
-        this.row = row;
-        this.col = col;
+        this._row = row;
+        this._col = col;
+        this.pervRow = row;
+        this.pervCol = col;
+
         this.maxHealth = maxHealth;
         this.health = maxHealth;
         this.atk = atk;
@@ -53,10 +59,29 @@ export abstract class Entity implements NbtSerializable {
         return this.health <= 0;
     }
 
+    public get row(): number {
+        return this._row;
+    }
+
+    public get col(): number {
+        return this._col;
+    }
+
+    public setPos(x: number, y: number) {
+        this.pervRow = this._row;
+        this.pervCol = this._col;
+        this._row = x;
+        this._col = y;
+    }
+
+    public move(dx: number, dy: number) {
+        this.setPos(this._row + dx, this._col + dy);
+    }
+
     public readNBT(nbt: NbtCompound) {
         const pos = nbt.getInt16Array('pos');
-        this.row = pos[0] ?? 1;
-        this.col = pos[1] ?? 1;
+        this._row = pos[0] ?? 1;
+        this._col = pos[1] ?? 1;
 
         if (nbt.contains('maxHealth', NbtTypeId.Int8)) {
             this.setMaxHealth(nbt.getInt8('max_health'));
@@ -67,7 +92,7 @@ export abstract class Entity implements NbtSerializable {
     }
 
     public writeNBT(nbt: NbtCompound): NbtCompound {
-        nbt.putInt16Array('pos', this.row, this.col);
+        nbt.putInt16Array('pos', this._row, this._col);
 
         nbt.putInt8('max_health', this.maxHealth);
         nbt.putInt8('health', this.health);

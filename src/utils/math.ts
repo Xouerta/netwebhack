@@ -1,5 +1,7 @@
 import type {Supplier} from "../types.ts";
 
+export const PI2 = Math.PI * 2;
+
 export function clamp(value: number, min: number, max: number) {
     return Math.max(min, Math.min(max, value));
 }

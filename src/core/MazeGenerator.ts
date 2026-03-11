@@ -1,13 +1,19 @@
-/**
- * 迷宫生成模块
- * 使用Kruskal算法生成连通迷宫，并添加小房间
- */
 import type {Supplier} from "../types.ts";
 import {shuffleArray} from "../utils/math.ts";
 import {UnionFind} from "../utils/UnionFind.ts";
 import {Maze} from "./Maze.ts";
 import type {Position} from "./Position.ts";
 
+
+/**
+ * 迷宫生成模块
+ * 使用Kruskal算法生成连通迷宫，并添加小房间
+ *
+ * 0x00 墙
+ * 0x01 路
+ * 0x10 物品
+ * 0xff 事件
+ */
 export class MazeGenerator {
     /**
      * 生成一层地牢

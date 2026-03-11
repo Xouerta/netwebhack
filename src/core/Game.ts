@@ -4,8 +4,8 @@
  */
 import {GameState} from "./GameState.ts";
 import type {Supplier} from "../types.ts";
-import type {Renderer} from "../ui/Renderer.ts";
-import type {ModalManager} from "../ui/Modal.ts";
+import type {Renderer} from "../render/Renderer.ts";
+import type {ModalManager} from "../render/Modal.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {GameLevel} from "./GameLevel.ts";
 import {MobAi} from "../ai/MobAi.ts";
@@ -13,8 +13,8 @@ import {BossAI} from "../ai/BossAI.ts";
 import {GameCombat} from "./GameCombat.ts";
 import {Seed} from "./Seed.ts";
 import {EventSystem} from "../systems/EventSystem.ts";
-import {Controls} from "../ui/Controls.ts";
-import type {InventoryUI} from "../ui/InventoryUi.ts";
+import {Controls} from "../render/Controls.ts";
+import type {InventoryUI} from "../render/InventoryUi.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 import {SoundSystem} from "../systems/SoundSystem.ts";
 import {Items} from "../item/Items.ts";
@@ -103,7 +103,7 @@ export class Game {
 
         this.state.stats.steps++;
         this.state.currentItemCell = null;
-        this.state.player.moveTo(nr, nc);
+        this.state.player.setPos(nr, nc);
 
         // 处理格子内容
         this.handleCellContent(nr, nc);
@@ -119,7 +119,7 @@ export class Game {
      * 移动所有怪物
      */
     private moveMonsters() {
-        const adjacentMonster = this.monsterAI.moveAllMonsters();
+        const adjacentMonster = this.monsterAI.moveAllMobs();
 
         if (adjacentMonster && !this.state.inCombat &&
             !this.state.gameWin && !this.state.gameOver) {

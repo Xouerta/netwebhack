@@ -27,6 +27,7 @@ export class SoundSystem {
         this.registry('armor', ['armor']);
         this.registry('block', ['block1', 'block2', 'block3'], true);
         this.registry('hurt', ['hurt1', 'hurt2', 'hurt3'], true);
+        this.registry('levelup', ['levelup']);
     }
 
     private static registry(name: string, urls: string[], parent: boolean = false) {

@@ -1,7 +1,7 @@
 import type {GameState} from "./GameState.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
-import type {ModalManager} from "../ui/Modal.ts";
-import type {InventoryUI} from "../ui/InventoryUi.ts";
+import type {ModalManager} from "../render/Modal.ts";
+import type {InventoryUI} from "../render/InventoryUi.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import {CombatSystem} from "../systems/Combat.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";

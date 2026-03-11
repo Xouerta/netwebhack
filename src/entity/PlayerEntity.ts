@@ -10,7 +10,7 @@ export class PlayerEntity extends Entity {
     private readonly inventory: Inventory = new Inventory(10);
 
     public constructor() {
-        super(1, 1, 5, 1, 1);
+        super(1, 1, 2, 1, 1);
     }
 
     public takeDamage(damage: number) {
@@ -22,8 +22,7 @@ export class PlayerEntity extends Entity {
      * 重置玩家到起点
      */
     public reset() {
-        this.row = 1;
-        this.col = 1;
+        this.setPos(1, 1);
         this.setHealth(this.getMaxHealth());
     }
 
@@ -40,14 +39,6 @@ export class PlayerEntity extends Entity {
      */
     public getPower() {
         return this.atk + this.def + Math.floor(this.getHealth() / 2);
-    }
-
-    /**
-     * 移动到新位置
-     */
-    public moveTo(row: number, col: number) {
-        this.row = row;
-        this.col = col;
     }
 
     /**

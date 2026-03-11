@@ -97,6 +97,8 @@ export class CombatSystem {
                 gameCallbacks.addLog(`✨ 战胜${mob.getName()}后, 你的生命力变得更顽强, 生命上限 +1`, 'fight');
             }
         }
+
+        SoundSystem.play('levelup');
     }
 
     /**
