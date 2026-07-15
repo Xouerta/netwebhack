@@ -3,7 +3,7 @@
  * 整合各个模块，提供对外接口
  */
 import {GameState} from "./GameState.ts";
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 import type {Renderer} from "../render/Renderer.ts";
 import type {ModalManager} from "../render/Modal.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";

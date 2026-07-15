@@ -1,4 +1,4 @@
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 
 export const PI2 = Math.PI * 2;
 

@@ -1,4 +1,4 @@
-import type {Consumer, Predicate, Supplier} from "../types.ts";
+import type {Consumer, Predicate, Supplier} from "../types/types.ts";
 
 export class Optional<T> {
     private static readonly EMPTY = Object.freeze(new Optional(null)) as Optional<null>;

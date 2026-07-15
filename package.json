@@ -9,10 +9,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13"
-  },
-  "overrides": {
-    "vite": "^8.0.0-beta.13"
+    "terser": "^5.49.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.4"
   }
 }

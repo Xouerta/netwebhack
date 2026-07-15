@@ -2,7 +2,7 @@ import {Entity} from "./Entity.ts";
 import type {Position} from "../core/Position.ts";
 import type {Item} from "../item/Item.ts";
 import {Items} from "../item/Items.ts";
-import type {Consumer} from "../types.ts";
+import type {Consumer} from "../types/types.ts";
 import {Inventory} from "../inventory/Inventory.ts";
 import {SoundSystem} from "../systems/SoundSystem.ts";
 

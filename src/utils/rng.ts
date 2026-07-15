@@ -2,7 +2,7 @@
  * 随机数生成器模块
  * 线性同余生成器 (LCG)
  */
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 
 export const RNG = {
     /**

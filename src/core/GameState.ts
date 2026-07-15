@@ -1,7 +1,7 @@
 import {PlayerEntity} from "../entity/PlayerEntity.ts";
 import {newStats, type Stats} from "./Stats.ts";
 import type {Position} from "./Position.ts";
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import {Maze} from "./Maze.ts";
 

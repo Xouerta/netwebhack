@@ -2,7 +2,7 @@
  * 游戏事件系统模块
  * 处理随机事件的触发和执行
  */
-import type {BiConsumer, Consumer, Supplier} from "../types.ts";
+import type {BiConsumer, Consumer, Supplier} from "../types/types.ts";
 import type {ModalManager} from "../render/Modal.ts";
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import {MobEntity} from "../entity/MobEntity.ts";

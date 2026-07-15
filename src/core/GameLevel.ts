@@ -3,7 +3,7 @@
  * 负责加载新关卡、生成怪物
  */
 import {GameState} from "./GameState.ts";
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 import {MobEntity, MonsterGenerator} from "../entity/MobEntity.ts";
 import {shuffleArray} from "../utils/math.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";

@@ -1,5 +1,5 @@
-import type {StoreConfig} from "../types.ts";
 import {Result} from "../utils/result/Result.ts";
+import type {StoreConfig} from "../types/StoreConfig.ts";
 
 export class IndexedDBHelper {
     private db: IDBDatabase | null = null;

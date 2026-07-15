@@ -3,7 +3,7 @@
  * 管理怪物属性和AI行为
  */
 import {Entity} from "./Entity.ts";
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 
 export class MobEntity extends Entity {
     public readonly type: string;

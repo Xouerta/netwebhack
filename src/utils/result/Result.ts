@@ -1,4 +1,4 @@
-import type {FunctionReturn} from "../../types.ts";
+import type {Return} from "../../types/types.ts";
 import {Optional} from "../Optional.ts";
 
 export interface Ok<T> {
@@ -50,25 +50,25 @@ export class Result<T, E> {
         return this.inner.ok ? this.inner.value : defaultValue;
     }
 
-    public unwrapOrElse(func: FunctionReturn<E, T>): T {
+    public unwrapOrElse(func: Return<E, T>): T {
         return this.inner.ok ? this.inner.value : func(this.inner.error);
     }
 
-    public map<U>(func: FunctionReturn<T, U>): Result<U, E> {
+    public map<U>(func: Return<T, U>): Result<U, E> {
         if (this.inner.ok) {
             return Result.ok(func(this.inner.value));
         }
         return Result.err(this.inner.error);
     }
 
-    public mapErr<F>(func: FunctionReturn<E, F>): Result<T, F> {
+    public mapErr<F>(func: Return<E, F>): Result<T, F> {
         if (!this.inner.ok) {
             return Result.err(func(this.inner.error));
         }
         return Result.ok(this.inner.value);
     }
 
-    public andThen<U>(func: FunctionReturn<T, Result<U, E>>): Result<U, E> {
+    public andThen<U>(func: Return<T, Result<U, E>>): Result<U, E> {
         if (this.inner.ok) {
             return func(this.inner.value);
         }

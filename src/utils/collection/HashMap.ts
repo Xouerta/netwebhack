@@ -1,38 +1,59 @@
-import type {Comparable} from "../../types.ts";
+import type {Return} from "../../types/types.ts";
+import type {Comparable} from "../../types/Comparable.ts";
+
 
 export class HashMap<K extends Comparable, V> implements Map<K, V> {
-    private readonly buckets: Map<string, { key: K, value: V }[]> = new Map();
-    private itemSize: number = 0;
+    public readonly [Symbol.toStringTag]: string = 'HashMap';
 
-    public set(key: K, value: V) {
+    private readonly loadFactor = 0.75;
+    private readonly initCapacity: number;
+
+    private buckets: Array<BucketEntry<K, V>[] | null>;
+    private entrySize = 0;
+
+    public constructor(capacity = 16) {
+        capacity = 1 << Math.ceil(Math.log2(Math.max(capacity, 1)));
+        this.buckets = new Array(capacity).fill(null);
+        this.initCapacity = capacity;
+    }
+
+    public set(key: K, value: V): this {
+        if (this.entrySize / this.buckets.length >= this.loadFactor) {
+            this.resize();
+        }
+
         const hash = key.hashCode();
-        const bucket = this.buckets.get(hash);
+        const idx = hash & (this.buckets.length - 1);
+        let bucket = this.buckets[idx];
 
         if (!bucket) {
-            this.buckets.set(hash, [{key, value}]);
-            this.itemSize++;
-            return this;
+            this.buckets[idx] = bucket = [];
         }
 
-        const existingIndex = bucket.findIndex(entry => key.equals(entry.key));
-        if (existingIndex >= 0) {
-            bucket[existingIndex].value = value;
-        } else {
-            bucket.push({key, value});
+        for (const entry of bucket) {
+            if (entry.hash === hash && entry.key.equal(key)) {
+                entry.value = value;
+                return this;
+            }
         }
 
-        this.itemSize++;
+        bucket.push({key, value, hash});
+        this.entrySize++;
         return this;
     }
 
     public get(key: K): V | undefined {
         const hash = key.hashCode();
-        const bucket = this.buckets.get(hash);
+        const bucket = this.buckets[hash & (this.buckets.length - 1)];
 
         if (!bucket) return undefined;
 
-        const entry = bucket.find(entry => key.equals(entry.key));
-        return entry?.value;
+        for (const entry of bucket) {
+            if (entry.hash === hash && entry.key.equal(key)) {
+                return entry.value;
+            }
+        }
+        return undefined;
     }
 
     public has(key: K): boolean {
@@ -41,38 +62,35 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
 
     public delete(key: K): boolean {
         const hash = key.hashCode();
-        const bucket = this.buckets.get(hash);
+        const idx = hash & (this.buckets.length - 1);
+        const bucket = this.buckets[idx];
 
         if (!bucket) return false;
 
-        const index = bucket.findIndex(entry => key.equals(entry.key));
-        if (index >= 0) {
-            bucket.splice(index, 1);
-            if (bucket.length === 0) {
-                this.buckets.delete(hash);
-            }
-            this.itemSize--;
-            return true;
-        }
+        for (let i = 0; i < bucket.length; i++) {
+            if (bucket[i].hash === hash && bucket[i].key.equal(key)) {
+                bucket.splice(i, 1);
+                if (bucket.length === 0) this.buckets[idx] = null;
 
+                this.entrySize--;
+                return true;
+            }
+        }
         return false;
     }
 
     public clear(): void {
-        this.buckets.clear();
-        this.itemSize = 0;
+        this.buckets = new Array(this.initCapacity).fill(null);
+        this.entrySize = 0;
     }
 
     public get size(): number {
-        return this.itemSize;
-    }
-
-    public keySize(): number {
-        return this.buckets.size;
+        return this.entrySize;
     }
 
     public* entries(): MapIterator<[K, V]> {
-        for (const bucket of this.buckets.values()) {
+        for (const bucket of this.buckets) {
+            if (!bucket) continue;
             for (const {key, value} of bucket) {
                 yield [key, value];
             }
@@ -101,5 +119,41 @@ export class HashMap<K extends Comparable, V> implements Map<K, V> {
         return this.entries();
     }
 
-    public readonly [Symbol.toStringTag]: string = 'HashMap';
+    public getOrInsert(key: K, defaultValue: V): V {
+        const value = this.get(key);
+        if (value !== undefined) return value;
+
+        this.set(key, defaultValue);
+        return defaultValue;
+    }
+
+    public getOrInsertComputed(key: K, callback: Return<K, V>): V {
+        const value = this.get(key);
+        if (value !== undefined) return value;
+
+        const newValue = callback(key);
+        this.set(key, newValue);
+        return newValue;
+    }
+
+    private resize(): void {
+        const old = this.buckets;
+        const newLen = old.length * 2;
+        this.buckets = new Array(newLen).fill(null);
+
+        for (const bucket of old) {
+            if (!bucket) continue;
+            for (let i = 0; i < bucket.length; i++) {
+                const {key, value, hash} = bucket[i];
+                const idx = hash & (newLen - 1);
+                (this.buckets[idx] ??= []).push({key, value, hash});
+            }
+        }
+    }
+}
+
+interface BucketEntry<K extends Comparable, V> {
+    key: K;
+    value: V;
+    hash: number;
 }

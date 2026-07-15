@@ -1,4 +1,4 @@
-import type {UUID} from "../types.ts";
+import type {UUID} from "../types/types.ts";
 import {UUIDUtil} from "../utils/UUIDUtil.ts";
 
 export class BinaryReader {

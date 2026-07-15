@@ -3,7 +3,7 @@
  * 管理所有弹窗的显示和交互
  */
 import {type Score} from "../systems/score/Score.ts";
-import type {Consumer} from "../types.ts";
+import type {Consumer} from "../types/types.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 import type {Inventory} from "../inventory/Inventory.ts";
 import type {Item} from "../item/Item.ts";

@@ -1,4 +1,4 @@
-import type {Supplier} from "../types.ts";
+import type {Supplier} from "../types/types.ts";
 import {shuffleArray} from "../utils/math.ts";
 import {UnionFind} from "../utils/UnionFind.ts";
 import {Maze} from "./Maze.ts";

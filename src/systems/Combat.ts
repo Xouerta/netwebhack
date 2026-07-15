@@ -5,7 +5,7 @@
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import type {Stats} from "../core/Stats.ts";
-import type {BiConsumer} from "../types.ts";
+import type {BiConsumer} from "../types/types.ts";
 import {SoundSystem} from "./SoundSystem.ts";
 
 export interface FightCallback {
