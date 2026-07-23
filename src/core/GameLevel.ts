@@ -1,21 +1,16 @@
-/**
- * 关卡管理模块
- * 负责加载新关卡、生成怪物
- */
 import {GameState} from "./GameState.ts";
-import type {Supplier} from "../types/types.ts";
 import {MobEntity, MonsterGenerator} from "../entity/MobEntity.ts";
-import {shuffleArray} from "../utils/math.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
 import {MazeGenerator} from "./MazeGenerator.ts";
 import {Items} from "../item/Items.ts";
+import type {GameRng} from "../types/GameRng.ts";
 
 export class GameLevel {
     private readonly state: GameState;
-    public rngs: Record<string, Supplier<number>>;
+    public rngs: GameRng;
     private readonly logSystem: LogSystem;
 
-    public constructor(gameState: GameState, rngs: Record<string, Supplier<number>>, logSystem: LogSystem) {
+    public constructor(gameState: GameState, rngs: GameRng, logSystem: LogSystem) {
         this.state = gameState;
         this.rngs = rngs;
         this.logSystem = logSystem;
@@ -72,7 +67,7 @@ export class GameLevel {
         if (allFreeCells.length === 0) return [];
 
         const monsterCount = Math.min(
-            5 + level * 2 + Math.floor(this.rngs.monster() * 4),
+            5 + level * 2 + this.rngs.monster.nextInt(0, 4),
             GameState.MAX_MOB_CAP,
             filteredCells.length
         );
@@ -93,8 +88,8 @@ export class GameLevel {
         }
 
         // 随机打乱
-        shuffleArray(nearCells, this.rngs.monster);
-        shuffleArray(farCells, this.rngs.monster);
+        this.rngs.monster.shuffleInplace(nearCells);
+        this.rngs.monster.shuffleInplace(farCells);
 
         // 放置大怪
         let bigMonstersPlaced = 0;
@@ -124,7 +119,7 @@ export class GameLevel {
 
         remainingCells.push(...nearCells);
 
-        shuffleArray(remainingCells, this.rngs.monster);
+        this.rngs.monster.shuffleInplace(remainingCells);
         for (let i = 0; i < smallMonsterCount && i < remainingCells.length; i++) {
             const [r, c] = remainingCells[i];
             const monster = MonsterGenerator.spawn(level, 'small', r, c, this.rngs.monster);
@@ -146,7 +141,7 @@ export class GameLevel {
         );
 
         const candidates = farCells.length > 0 ? farCells : freeCells;
-        const randomIndex = Math.floor(this.rngs.monster() * candidates.length);
+        const randomIndex = this.rngs.monster.nextInt(0, candidates.length);
         const cell = candidates[randomIndex];
 
         const boss = MonsterGenerator.spawn(level, 'boss', cell[0], cell[1], this.rngs.monster);

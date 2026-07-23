@@ -22,4 +22,8 @@ export class Items {
     public static getItem(type: number) {
         return this.items.get(type) ?? null;
     }
+
+    public static iter() {
+        return this.items.entries();
+    }
 }

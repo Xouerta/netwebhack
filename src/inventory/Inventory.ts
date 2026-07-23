@@ -1,19 +1,28 @@
 import type {Item} from "../item/Item.ts";
+import {clamp} from "../utils/math/math.ts";
 
 export class Inventory {
     private readonly items: Item[] = [];
-    private maxSize: number;
+    private readonly maxSize: number;
 
     public constructor(maxSize: number) {
         this.maxSize = maxSize;
     }
 
-    public addItem(item: Item) {
-        if (this.items.length >= this.maxSize) {
+    public addItem(item: Item, count: number = 1) {
+        count = clamp(count, 1, this.maxSize - this.items.length);
+        if (count === 0) {
             return false;
         }
 
-        this.items.push(item);
+        if (count === 1) {
+            this.items.push(item);
+            return true;
+        }
+
+        for (let i = 0; i < count; i++) {
+            this.items.push(item);
+        }
         return true;
     }
 

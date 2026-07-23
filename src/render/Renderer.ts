@@ -6,8 +6,8 @@ import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import type {Maze} from "../core/Maze.ts";
 import {Items} from "../item/Items.ts";
-import {PI2} from "../utils/math.ts";
 import {LightRender} from "./LightRender.ts";
+import {PI2} from "../utils/math/math.ts";
 
 export class Renderer {
     private readonly canvas: HTMLCanvasElement;

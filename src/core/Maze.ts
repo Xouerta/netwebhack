@@ -7,7 +7,7 @@ export class Maze {
         this.size = size;
     }
 
-    inBounds(row: number, col: number): boolean {
+    public inBounds(row: number, col: number): boolean {
         return row >= 0 && row < this.size && col >= 0 && col < this.size;
     }
 

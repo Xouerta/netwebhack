@@ -1,18 +1,13 @@
-/**
- * 游戏事件系统模块
- * 处理随机事件的触发和执行
- */
 import type {BiConsumer, Consumer, Supplier} from "../types/types.ts";
 import type {ModalManager} from "../render/Modal.ts";
 import type {PlayerEntity} from "../entity/PlayerEntity.ts";
 import {MobEntity} from "../entity/MobEntity.ts";
 import type {Stats} from "../core/Stats.ts";
 import type {GameEvent} from "./GameEvent.ts";
+import {Items} from "../item/Items.ts";
+import {deepFreeze} from "../utils/uit.ts";
 
 export class EventSystem {
-    /**
-     * 事件库
-     */
     public static readonly EVENTS: GameEvent[] = [
         {
             title: "💀 幽灵的考验",
@@ -57,7 +52,6 @@ export class EventSystem {
                     text: "💪 摧毁陷阱 (+1攻, 但召唤1只大怪)",
                     effect: (p, m, log) => {
                         p.atk++;
-                        // 召唤大怪
                         const newMonster = new MobEntity(
                             p.row, p.col, 'big', 3, 3, 5
                         );
@@ -76,9 +70,9 @@ export class EventSystem {
                                 m.splice(idx, 1);
                                 log("🔮 封印陷阱，防御+1，并清除了一只小怪", 'event');
                             }
-                        } else {
-                            log("🔮 封印陷阱，防御+1，但没有小怪可清除", 'event');
+                            return
                         }
+                        log("🔮 封印陷阱，防御+1，但没有小怪可清除", 'event');
                     }
                 }
             ]
@@ -98,8 +92,8 @@ export class EventSystem {
                             log("💙 防御+1", 'event');
                         }
                         if (Math.random() < 0.3) {
-                            p.takeDamage(2);
-                            log("😵 中毒了，生命-2", 'event');
+                            p.takeDamage(1);
+                            log("😵 中毒了，生命-1", 'event');
                         }
                     }
                 },
@@ -137,7 +131,7 @@ export class EventSystem {
                     effect: (p, _m, log) => {
                         if (p.atk > 1) {
                             p.atk--;
-                            p.setMaxHealth(p.getMaxHealth() + 2);
+                            p.increaseMaxHp(2);
                             p.heal(2);
                             log("⚡ 献祭1攻击，生命上限+2，生命+2", 'event');
                         }
@@ -185,9 +179,9 @@ export class EventSystem {
                                 m.splice(idx, 1);
                                 log("💰 贿赂成功，一只小怪消失了", 'event');
                             }
-                        } else {
-                            log("💰 没有小怪可贿赂", 'event');
+                            return
                         }
+                        log("💰 没有小怪可贿赂", 'event');
                     }
                 }
             ]
@@ -202,12 +196,12 @@ export class EventSystem {
                         if (Math.random() < 0.5) {
                             p.atk++;
                             p.def++;
-                            p.setMaxHealth(p.getMaxHealth() + 1);
+                            p.increaseMaxHp(1);
                             p.heal(1);
                             log("🙏 祈祷应验！全属性+1", 'event');
                         } else {
                             const newMonster = new MobEntity(
-                                p.row, p.col, 'big', 4, 4, 8
+                                p.row, p.col, 'big', 4, 4, 6
                             );
                             m.push(newMonster);
                             log("🙏 祈祷招来了灾祸！一只大怪出现", 'event');
@@ -295,8 +289,8 @@ export class EventSystem {
                             p.atk += 2;
                             log("🎲 轮盘停止在利剑图案上！攻击力+2！", 'event');
                         } else if (roll < 0.6) {
-                            p.takeDamage(2);
-                            log("🎲 轮盘停止在骷髅图案上！你感到一阵剧痛，生命-2。", 'event');
+                            p.takeDamage(1);
+                            log("🎲 轮盘停止在骷髅图案上！你感到一阵剧痛，生命-1。", 'event');
                         } else {
                             const newMonster = new MobEntity(p.row, p.col, 'big', 5, 5, 10);
                             m.push(newMonster);
@@ -335,8 +329,8 @@ export class EventSystem {
                 {
                     text: "🍃 获取仙草 (获得3瓶血药)",
                     effect: (p, _m, log) => {
-                        p.heal(3);
-                        log("🍃 精灵给了你一些仙草，生命+3。", 'event');
+                        p.getInventory().addItem(Items.POTION, 3);
+                        log("🍃 精灵给了你一些仙草，血药+3。", 'event');
                     }
                 }
             ]
@@ -351,20 +345,20 @@ export class EventSystem {
                         if (Math.random() < 0.7) {
                             log("🏃‍♂️ 你成功找到了一个洞穴躲避，毫发无伤。", 'event');
                         } else {
-                            p.takeDamage(2);
-                            log("🏃‍♂️ 你没能及时躲开，被闪电余波击中，生命-2。", 'event');
+                            p.takeDamage(1);
+                            log("🏃‍♂️ 你没能及时躲开，被闪电余波击中，生命-1。", 'event');
                         }
                     }
                 },
                 {
-                    text: "🔮 引导闪电 (若成功则攻击+2, 否则生命-4)",
+                    text: "🔮 引导闪电 (若成功则攻击+2, 否则生命-3)",
                     effect: (p, _m, log) => {
                         if (Math.random() < 0.4) {
                             p.atk += 2;
                             log("🔮 你成功将雷电之力引导至武器上，攻击力+2！", 'event');
                         } else {
-                            p.takeDamage(4);
-                            log("🔮 雷电失控，直接击中了你的身体，生命-4。", 'event');
+                            p.takeDamage(3);
+                            log("🔮 雷电失控，直接击中了你的身体，生命-3。", 'event');
                         }
                     }
                 }
@@ -488,14 +482,14 @@ export class EventSystem {
                             if (Math.random() < 0.5) {
                                 p.atk++;
                                 log("⛏️ 你找到了一块火晶石，将其融入武器，攻击力+1！", 'event');
-                            } else {
-                                p.def++;
-                                log("⛏️ 你找到了一块火晶石，将其镶嵌在护甲上，防御力+1！", 'event');
+                                return
                             }
-                        } else {
-                            p.takeDamage(3);
-                            log("⛏️ 你被飞溅的熔岩烫伤，生命-3。", 'event');
+                            p.def++;
+                            log("⛏️ 你找到了一块火晶石，将其镶嵌在护甲上，防御力+1！", 'event');
+                            return;
                         }
+                        p.takeDamage(1);
+                        log("⛏️ 你被飞溅的熔岩烫伤，生命-1。", 'event');
                     }
                 },
                 {
@@ -519,7 +513,6 @@ export class EventSystem {
                             p.def++;
                             log("📚 你理解了书中的战术知识，攻击力和防御力各+1！", 'event');
                         } else if (outcome < 0.7) {
-                            p.takeDamage(4);
                             const newMonster = new MobEntity(p.row, p.col, 'big', 4, 4, 7);
                             m.push(newMonster);
                             log("📚 古书的诅咒被触发，你受到伤害，并召唤出一只怪物！", 'event');
@@ -550,14 +543,16 @@ export class EventSystem {
                         if (effect < 0.33) {
                             p.heal(5);
                             log("🍽️ 你吃下了一个治愈蘑菇，生命+5！", 'event');
-                        } else if (effect < 0.66) {
+                            return
+                        }
+                        if (effect < 0.66) {
                             p.atk += 1;
                             p.def += 1;
                             log("🍽️ 你吃下了一个力量蘑菇，攻击力和防御力各+1！", 'event');
-                        } else {
-                            p.takeDamage(3);
-                            log("🍽️ 你吃下了一个毒蘑菇，生命-3！", 'event');
+                            return;
                         }
+                        p.takeDamage(1);
+                        log("🍽️ 你吃下了一个毒蘑菇，生命-1！", 'event');
                     }
                 },
                 {
@@ -587,8 +582,8 @@ export class EventSystem {
                     effect: (p, _m, log) => {
                         p.atk++;
                         p.def++;
-                        p.takeDamage(3);
-                        log("⚔️ 你发誓要完成勇者的遗愿，力量提升了，但也感受到了他临终前的痛苦，生命-3。", 'event');
+                        p.takeDamage(2);
+                        log("⚔️ 你发誓要完成勇者的遗愿，力量提升了，但也感受到了他临终前的痛苦，生命-2。", 'event');
                     }
                 },
                 {
@@ -600,6 +595,10 @@ export class EventSystem {
             ]
         }
     ];
+
+    static {
+        deepFreeze(this);
+    }
 
     /**
      * 获取随机事件

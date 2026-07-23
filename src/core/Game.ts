@@ -3,7 +3,6 @@
  * 整合各个模块，提供对外接口
  */
 import {GameState} from "./GameState.ts";
-import type {Supplier} from "../types/types.ts";
 import type {Renderer} from "../render/Renderer.ts";
 import type {ModalManager} from "../render/Modal.ts";
 import type {LogSystem} from "../systems/LogSystem.ts";
@@ -18,11 +17,12 @@ import type {InventoryUI} from "../render/InventoryUi.ts";
 import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
 import {SoundSystem} from "../systems/SoundSystem.ts";
 import {Items} from "../item/Items.ts";
+import {GameRng} from "../types/GameRng.ts";
 
 export class Game {
     public readonly state: GameState;
-    private currentSeed: string;
-    private rngs: Record<string, Supplier<number>> | null;
+    private currentSeed!: string;
+    private rngs!: GameRng;
     private renderer!: Renderer;
     private modalManager!: ModalManager;
     private logSystem!: LogSystem;
@@ -34,17 +34,9 @@ export class Game {
     private combatSystem!: GameCombat;
 
     public constructor() {
-        // 状态管理
         this.state = new GameState();
-
-        // 种子相关
-        this.currentSeed = "BAG-5LVL-001";
-        this.rngs = null;
     }
 
-    /**
-     * 初始化游戏
-     */
     public init(renderer: Renderer, modalManager: ModalManager, logSystem: LogSystem, inventoryUI: InventoryUI) {
         this.renderer = renderer;
         this.modalManager = modalManager;
@@ -52,7 +44,7 @@ export class Game {
         this.inventoryUI = inventoryUI;
 
         // 初始化子模块
-        this.levelManager = new GameLevel(this.state, this.rngs!, this.logSystem);
+        this.levelManager = new GameLevel(this.state, this.rngs, this.logSystem);
         this.monsterAI = new MobAi(this, this.state, this.logSystem);
         this.bossAI = new BossAI(this.state, this.logSystem);
         this.combatSystem = new GameCombat(
@@ -62,16 +54,17 @@ export class Game {
         this.controls = new Controls(this);
     }
 
-    /**
-     * 加载世界
-     */
     public loadWorld(seedStr: string) {
-        this.currentSeed = Seed.normalize(seedStr);
-        this.rngs = Seed.createRNGs(this.currentSeed);
+        if (!Seed.isValid(seedStr)) {
+            throw new Error('Invalid Seed');
+        }
+
+        this.currentSeed = seedStr;
+
+        const seed = new Seed(seedStr);
+        this.rngs = new GameRng(seed);
 
         this.state.reset();
-
-        // 更新子模块的rngs
         this.levelManager.rngs = this.rngs;
 
         this.logSystem.clear();
@@ -80,9 +73,6 @@ export class Game {
         this.render();
     }
 
-    /**
-     * 移动玩家
-     */
     public movePlayer(dr: number, dc: number) {
         if (this.cannotAct()) return;
 

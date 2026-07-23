@@ -10,7 +10,7 @@ export class PlayerEntity extends Entity {
     private readonly inventory: Inventory = new Inventory(10);
 
     public constructor() {
-        super(1, 1, 2, 1, 1);
+        super(1, 1, 6, 1, 1);
     }
 
     public takeDamage(damage: number) {

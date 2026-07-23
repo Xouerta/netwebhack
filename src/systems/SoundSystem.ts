@@ -1,4 +1,4 @@
-import {randInt} from "../utils/math.ts";
+import {randInt} from "../utils/math/math.ts";
 
 export class SoundSystem {
     private static readonly buffers = new Map<string, AudioBuffer[]>();

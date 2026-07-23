@@ -1,8 +1,7 @@
-import type {Supplier} from "../types/types.ts";
-import {shuffleArray} from "../utils/math.ts";
 import {UnionFind} from "../utils/UnionFind.ts";
 import {Maze} from "./Maze.ts";
 import type {Position} from "./Position.ts";
+import type {Rng} from "../utils/math/Rng.ts";
 
 
 /**
@@ -18,7 +17,7 @@ export class MazeGenerator {
     /**
      * 生成一层地牢
      */
-    public static generateLevel(size: number, level: number, rng: Supplier<number>) {
+    public static generateLevel(size: number, level: number, rng: Rng) {
         const maze = this.generateBaseMaze(size, rng);
         this.addSmallRooms(maze, rng);
 
@@ -33,7 +32,7 @@ export class MazeGenerator {
     /**
      * Kruskal算法生成基础迷宫
      */
-    private static generateBaseMaze(size: number, rng: Supplier<number>) {
+    private static generateBaseMaze(size: number, rng: Rng) {
         const maze = new Maze(size);
 
         // 初始化所有奇行奇列为路
@@ -57,7 +56,7 @@ export class MazeGenerator {
         }
 
         // 随机打乱
-        shuffleArray(edges, rng);
+        rng.shuffleInplace(edges);
 
         const uf = new UnionFind();
 
@@ -77,15 +76,16 @@ export class MazeGenerator {
     /**
      * 添加小房间
      */
-    private static addSmallRooms(maze: Maze, rng: Supplier<number>) {
+    private static addSmallRooms(maze: Maze, rng: Rng) {
         const size = maze.getSize();
-        const numSmallRooms = 6 + Math.floor(rng() * 8);
+        const numSmallRooms = 6 + rng.nextInt(0, 8);
 
         for (let i = 0; i < numSmallRooms; i++) {
-            let w = 3 + Math.floor(rng() * 4);
-            let h = 3 + Math.floor(rng() * 4);
-            let x = 2 + Math.floor(rng() * (size - w - 4));
-            let y = 2 + Math.floor(rng() * (size - h - 4));
+            let w = 3 + rng.nextInt(0, 4);
+            let h = 3 + rng.nextInt(0, 4);
+
+            let x = 2 + Math.floor(rng.nextFloat() * (size - w - 4));
+            let y = 2 + Math.floor(rng.nextFloat() * (size - h - 4));
 
             // 挖空房间区域
             for (let ry = y; ry < y + h; ry++) {
@@ -98,9 +98,9 @@ export class MazeGenerator {
 
             // 随机打通几个出口
             for (let tries = 0; tries < 4; tries++) {
-                const doorX = x + Math.floor(rng() * w);
-                const doorY = y + Math.floor(rng() * h);
-                const dir = Math.floor(rng() * 4);
+                const doorX = x + rng.nextInt(0, w);
+                const doorY = y + rng.nextInt(0, h);
+                const dir = rng.nextInt(0, 4);
 
                 if (dir === 0 && doorY > 2) {
                     maze.set(doorY - 1, doorX, 1);
@@ -167,20 +167,20 @@ export class MazeGenerator {
     /**
      * 放置物品、事件和楼梯
      */
-    public static placeItemsAndEvents(maze: Maze, level: number, rng: Supplier<number>) {
+    public static placeItemsAndEvents(maze: Maze, level: number, rng: Rng) {
         const free = this.getFreeCells(maze);
-        shuffleArray(free, rng);
+        rng.shuffleInplace(free);
 
         // 放置道具（剑、盾、血药）
-        const itemCount = 3 + level + Math.floor(rng() * 4);
+        const itemCount = 3 + level + rng.nextInt(0, 4);
 
         for (let i = 0; i < itemCount && i < free.length; i++) {
-            const type = Math.floor(rng() * 3) + 0x10;
+            const type = rng.nextInt(0, 2) + 0x10;
             maze.set(free[i][0], free[i][1], type);
         }
 
         // 放置随机事件
-        const eventCount = 2 + Math.floor(rng() * 4);
+        const eventCount = 2 + rng.nextInt(0, 4);
         for (let i = 0; i < eventCount && i + itemCount < free.length; i++) {
             const [r, c] = free[i + itemCount];
             maze.set(r, c, 6);
@@ -192,10 +192,10 @@ export class MazeGenerator {
     /**
      * 放置楼梯
      */
-    public static placeStairs(maze: Maze, rng: Supplier<number>) {
+    public static placeStairs(maze: Maze, rng: Rng) {
         let free = this.getFreeCells(maze);
         free = free.filter(([r, c]) => !(r === 1 && c === 1));
-        shuffleArray(free, rng);
+        rng.shuffleInplace(free);
 
         if (free.length > 0) {
             const [r, c] = free[0];

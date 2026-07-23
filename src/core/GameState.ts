@@ -1,9 +1,9 @@
 import {PlayerEntity} from "../entity/PlayerEntity.ts";
 import {newStats, type Stats} from "./Stats.ts";
 import type {Position} from "./Position.ts";
-import type {Supplier} from "../types/types.ts";
 import type {MobEntity} from "../entity/MobEntity.ts";
 import {Maze} from "./Maze.ts";
+import type {Rng} from "../utils/math/Rng.ts";
 
 export class GameState {
     public static readonly TOTAL_LEVELS = 5;
@@ -11,11 +11,12 @@ export class GameState {
     public static readonly MIN_BIG_MOB_DISTANCE = 10;
 
     public readonly size: number = 40;
-    public currentLevel: number;
-    public player: PlayerEntity;
     public readonly maze: Maze;
-    public monsters: MobEntity[];
+    public currentLevel: number;
     public stairsPos: Position;
+
+    public player: PlayerEntity;
+    public monsters: MobEntity[];
 
     public gameWin: boolean;
     public gameOver: boolean;
@@ -92,7 +93,7 @@ export class GameState {
     /**
      * 随机选择不重复索引
      */
-    public selectRandomIndices(max: number, count: number, rng: Supplier<number>): number[] {
+    public selectRandomIndices(max: number, count: number, rng: Rng): number[] {
         if (count >= max) {
             return Array.from({length: max}, (_, i) => i);
         }
@@ -101,7 +102,7 @@ export class GameState {
         const selected = new Set();
 
         while (indices.length < count && indices.length < max) {
-            const idx = Math.floor(rng() * max);
+            const idx = Math.floor(rng.nextFloat() * max);
             if (!selected.has(idx)) {
                 selected.add(idx);
                 indices.push(idx);

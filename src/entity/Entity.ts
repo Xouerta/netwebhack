@@ -1,8 +1,8 @@
-import {clamp} from "../utils/math.ts";
 import type {NbtSerializable} from "../nbt/NbtSerializable.ts";
 import {type NbtCompound} from "../nbt/element/NbtCompound.ts";
 import {NbtTypeId} from "../nbt/NbtType.ts";
 import {AtomicInteger} from "../utils/collection/AtomicInteger.ts";
+import {clamp} from "../utils/math/math.ts";
 
 export abstract class Entity implements NbtSerializable {
     private static readonly NEXT_ID = new AtomicInteger();

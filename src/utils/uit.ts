@@ -1,4 +1,4 @@
-import {clamp} from "./math.ts";
+import {clamp} from "./math/math.ts";
 
 export function throttleTimeOut<T extends (...args: any[]) => any>(func: T, wait: number = 200) {
     let timer: number | null = null;
@@ -99,14 +99,6 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
         // @ts-ignore
         timer = setTimeout(() => func.apply(this, args), wait);
     }
-}
-
-export function shuffleArray<T>(array: T[]): T[] {
-    for (let i = array.length; i--;) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
 }
 
 export function getCompactTimestamp() {

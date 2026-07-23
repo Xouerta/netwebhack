@@ -3,7 +3,7 @@ import type {Entity} from "../Entity.ts";
 import type {TagKey} from "../../registry/tag/TagKey.ts";
 import type {RegistryEntry} from "../../registry/tag/RegistryEntry.ts";
 import type {RegistryKey} from "../../registry/RegistryKey.ts";
-import {clamp} from "../../utils/math.ts";
+import {clamp} from "../../utils/math/math.ts";
 
 export class DamageSource {
     private readonly type: RegistryEntry<DamageType>;
