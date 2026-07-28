@@ -19,12 +19,12 @@ export class Controls {
     /**
      * 处理键盘事件
      */
-    private handleKeyDown(e: KeyboardEvent) {
-        const key = e.code;
+    private handleKeyDown(event: KeyboardEvent) {
+        const key = event.code;
 
         // 方向键处理
         if (this.moveKeys.has(key)) {
-            e.preventDefault();
+            event.preventDefault();
 
             if (this.game.cannotAct()) return;
 
@@ -40,23 +40,23 @@ export class Controls {
 
         // 回车键拾取物品
         if (key === 'Enter' || key === 'NumpadEnter') {
-            e.preventDefault();
+            event.preventDefault();
             if (this.game.cannotAct()) return;
             this.game.pickupCurrentItem();
             return;
         }
 
         // 数字键使用物品（1-3）
-        if (e.key >= '1' && e.key <= '3') {
-            e.preventDefault();
+        if (event.key >= '1' && event.key <= '3') {
+            event.preventDefault();
             if (this.game.cannotAct()) return;
 
             // 1: 血药, 2: 剑, 3: 盾
-            if (e.key === '1') {
+            if (event.key === '1') {
                 this.game.usePotion();
-            } else if (e.key === '2') {
+            } else if (event.key === '2') {
                 this.game.useSword();
-            } else if (e.key === '3') {
+            } else if (event.key === '3') {
                 this.game.useShield();
             }
             return;
@@ -64,7 +64,7 @@ export class Controls {
 
         // D键打开丢弃物品界面
         if (key === 'KeyQ') {
-            e.preventDefault();
+            event.preventDefault();
             if (this.game.cannotAct()) return;
             this.game.openDropItemModal();
             return;

@@ -21,16 +21,15 @@ import {GameRng} from "../types/GameRng.ts";
 
 export class Game {
     public readonly state: GameState;
+
     private currentSeed!: string;
-    private rngs!: GameRng;
     private renderer!: Renderer;
     private modalManager!: ModalManager;
     private logSystem!: LogSystem;
-    public controls!: Controls;
     private inventoryUI!: InventoryUI;
     private levelManager!: GameLevel;
     private monsterAI!: MobAi;
-    public bossAI!: BossAI;
+    private bossAI!: BossAI;
     private combatSystem!: GameCombat;
 
     public constructor() {
@@ -44,14 +43,14 @@ export class Game {
         this.inventoryUI = inventoryUI;
 
         // 初始化子模块
-        this.levelManager = new GameLevel(this.state, this.rngs, this.logSystem);
+        this.levelManager = new GameLevel(this.state, this.logSystem);
         this.monsterAI = new MobAi(this, this.state, this.logSystem);
         this.bossAI = new BossAI(this.state, this.logSystem);
         this.combatSystem = new GameCombat(
             this.state, this.logSystem, this.modalManager, this.inventoryUI
         );
 
-        this.controls = new Controls(this);
+        new Controls(this);
     }
 
     public loadWorld(seedStr: string) {
@@ -62,10 +61,9 @@ export class Game {
         this.currentSeed = seedStr;
 
         const seed = new Seed(seedStr);
-        this.rngs = new GameRng(seed);
 
         this.state.reset();
-        this.levelManager.rngs = this.rngs;
+        this.levelManager.setRng(new GameRng(seed));
 
         this.logSystem.clear();
         this.levelManager.loadLevel(1);
@@ -280,8 +278,10 @@ export class Game {
     }
 
     public cannotAct() {
-        return this.state.gameWin || this.state.gameOver ||
-            this.state.waitingForEvent || this.state.inCombat;
+        return this.state.gameWin ||
+            this.state.gameOver ||
+            this.state.waitingForEvent ||
+            this.state.inCombat;
     }
 
     private isValidMove(row: number, col: number) {
