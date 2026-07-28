@@ -1,0 +1,162 @@
+import {GameState} from "./GameState.ts";
+import {MobEntity, MonsterGenerator} from "../entity/MobEntity.ts";
+import type {LogSystem} from "../systems/LogSystem.ts";
+import {MazeGenerator} from "./MazeGenerator.ts";
+import {Items} from "../item/Items.ts";
+import type {GameRng} from "../types/GameRng.ts";
+
+export class GameLevel {
+    private readonly state: GameState;
+    private readonly logSystem: LogSystem;
+    private rng!: GameRng;
+
+    public constructor(gameState: GameState, logSystem: LogSystem) {
+        this.state = gameState;
+        this.logSystem = logSystem;
+    }
+
+    public setRng(rng: GameRng) {
+        this.rng = rng;
+    }
+
+    public loadLevel(level: number) {
+        // 生成迷宫
+        const maze = MazeGenerator.generateLevel(this.state.size, level, this.rng.maze);
+
+        // 放置物品和事件
+        MazeGenerator.placeItemsAndEvents(maze, level, this.rng.item);
+
+        // 放置楼梯
+        const result = MazeGenerator.placeStairs(maze, this.rng.item);
+        this.state.maze.change(result.maze);
+        this.state.stairsPos = result.stairsPos;
+
+        // 生成怪物
+        this.state.monsters = this.spawnMonsters(level);
+
+        const player = this.state.player;
+        const {row, col} = player;
+        this.state.maze.set(row, col, 1);
+        if (this.state.stats.blessing < 2 && player.getHealth() <= 3) {
+            this.state.stats.blessing++;
+            player.getInventory().addItem(Items.POTION);
+            this.logSystem.addEvent('💫 女神的赐福! 获得一瓶恢复药剂');
+        }
+
+        this.logSystem.addStairs(`🏰 进入第 ${level} 层`);
+    }
+
+    /**
+     * 生成怪物
+     */
+    private spawnMonsters(level: number) {
+        if (level === GameState.TOTAL_LEVELS) {
+            return this.spawnBoss(level);
+        }
+
+        const mobs: MobEntity[] = [];
+        const allFreeCells = this.state.getFreeCellsForMonsters();
+        if (allFreeCells.length === 0) return [];
+
+        const mazeSize = this.state.maze.getSize();
+        const safePath = MazeGenerator.computeSafePath(this.state.maze, this.state.stairsPos);
+        const filteredCells = allFreeCells.filter(([r, c]) => {
+            const idx = r * mazeSize + c;
+            return !safePath.has(idx);
+        });
+        if (allFreeCells.length === 0) return [];
+
+        const monsterCount = Math.min(
+            5 + level * 2 + this.rng.monster.nextInt(0, 4),
+            GameState.MAX_MOB_CAP,
+            filteredCells.length
+        );
+
+        const bigMonsterCount = Math.floor(monsterCount * (0.2 + level * 0.1));
+
+        // 分离近处和远处的格子
+        const nearCells: number[][] = [];
+        const farCells: number[][] = [];
+
+        for (const cell of filteredCells) {
+            const dist = this.state.manhattanDistance(cell[0], cell[1], 1, 1);
+            if (dist >= GameState.MIN_BIG_MOB_DISTANCE) {
+                farCells.push(cell);
+            } else {
+                nearCells.push(cell);
+            }
+        }
+
+        // 随机打乱
+        this.rng.monster.shuffleInplace(nearCells);
+        this.rng.monster.shuffleInplace(farCells);
+
+        // 放置大怪
+        let bigMonstersPlaced = 0;
+        const bigMonsterIndices = this.state.selectRandomIndices(
+            farCells.length, bigMonsterCount, this.rng.monster
+        );
+
+        for (let i = 0; i < bigMonsterIndices.length; i++) {
+            const idx = bigMonsterIndices[i];
+            const [r, c] = farCells[idx];
+            const monster = MonsterGenerator.spawn(level, 'big', r, c, this.rng.monster);
+            mobs.push(monster);
+            bigMonstersPlaced++;
+        }
+
+        // 放置小怪
+        const smallMonsterCount = monsterCount - bigMonstersPlaced;
+
+        const usedFarIndices = new Set(bigMonsterIndices);
+        const remainingCells: number[][] = [];
+
+        for (let i = 0; i < farCells.length; i++) {
+            if (!usedFarIndices.has(i)) {
+                remainingCells.push(farCells[i]);
+            }
+        }
+
+        remainingCells.push(...nearCells);
+
+        this.rng.monster.shuffleInplace(remainingCells);
+        for (let i = 0; i < smallMonsterCount && i < remainingCells.length; i++) {
+            const [r, c] = remainingCells[i];
+            const monster = MonsterGenerator.spawn(level, 'small', r, c, this.rng.monster);
+            mobs.push(monster);
+        }
+
+        return mobs;
+    }
+
+    /**
+     * 生成Boss
+     */
+    private spawnBoss(level: number) {
+        const freeCells = this.state.getFreeCellsForMonsters();
+        if (freeCells.length === 0) return [];
+
+        const farCells = freeCells.filter(([r, c]) =>
+            this.state.manhattanDistance(r, c, 1, 1) >= GameState.MIN_BIG_MOB_DISTANCE
+        );
+
+        const candidates = farCells.length > 0 ? farCells : freeCells;
+        const randomIndex = this.rng.monster.nextInt(0, candidates.length);
+        const cell = candidates[randomIndex];
+
+        const boss = MonsterGenerator.spawn(level, 'boss', cell[0], cell[1], this.rng.monster);
+        return [boss];
+    }
+
+    /**
+     * 移动到下一层
+     */
+    public nextLevel() {
+        if (this.state.currentLevel < GameState.TOTAL_LEVELS) {
+            this.state.currentLevel++;
+            this.loadLevel(this.state.currentLevel);
+            return true;
+        }
+        return false;
+    }
+}
