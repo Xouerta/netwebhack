@@ -1,0 +1,68 @@
+import type {GameState} from "./GameState.ts";
+import type {LogSystem} from "../systems/LogSystem.ts";
+import type {ModalManager} from "../render/Modal.ts";
+import type {InventoryUI} from "../render/InventoryUi.ts";
+import type {MobEntity} from "../entity/MobEntity.ts";
+import {CombatSystem} from "../systems/Combat.ts";
+import {ScoreSystem} from "../systems/score/ScoreSystem.ts";
+
+export class GameCombat {
+    private readonly state: GameState;
+    private readonly logSystem: LogSystem;
+    private readonly modalManager: ModalManager;
+    private readonly inventoryUI: InventoryUI;
+
+    public constructor(gameState: GameState, logSystem: LogSystem, modalManager: ModalManager, inventoryUI: InventoryUI) {
+        this.state = gameState;
+        this.logSystem = logSystem;
+        this.modalManager = modalManager;
+        this.inventoryUI = inventoryUI;
+    }
+
+    /**
+     * 处理战斗
+     */
+    public handleCombat(mob: MobEntity) {
+        if (this.state.inCombat) return;
+        this.state.inCombat = true;
+
+        const monsterIdx = this.state.monsters.indexOf(mob);
+        if (monsterIdx === -1) {
+            this.state.inCombat = false;
+            return;
+        }
+
+        const result = CombatSystem.fight(
+            this.state.player,
+            mob,
+            this.state.monsters,
+            monsterIdx,
+            this.state.stats,
+            {
+                addLog: (msg: string, type: string) => this.logSystem.add(msg, type)
+            }
+        );
+
+        if (result === 3) {
+            this.state.stats.bossKilled = true;
+            this.state.gameWin = true;
+            const score = ScoreSystem.calculate(
+                this.state.player, this.state.stats, this.state.currentLevel
+            );
+            this.modalManager.showGameOverModal(score, true);
+        } else if (result === 1) {
+            this.state.gameOver = true;
+            const score = ScoreSystem.calculate(
+                this.state.player, this.state.stats, this.state.currentLevel
+            );
+            this.modalManager.showGameOverModal(score, false);
+        }
+
+        this.state.inCombat = false;
+
+        this.state.updateUI();
+        if (this.inventoryUI) {
+            this.inventoryUI.updateInventory(this.state.player.getInventory());
+        }
+    }
+}

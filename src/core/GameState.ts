@@ -1,0 +1,114 @@
+import {PlayerEntity} from "../entity/PlayerEntity.ts";
+import {newStats, type Stats} from "./Stats.ts";
+import type {Position} from "./Position.ts";
+import type {MobEntity} from "../entity/MobEntity.ts";
+import {Maze} from "./Maze.ts";
+import type {Rng} from "../utils/math/Rng.ts";
+
+export class GameState {
+    public static readonly TOTAL_LEVELS = 5;
+    public static readonly MAX_MOB_CAP = 10;
+    public static readonly MIN_BIG_MOB_DISTANCE = 10;
+
+    public readonly size: number = 40;
+    public readonly maze: Maze;
+    public currentLevel: number;
+    public stairsPos: Position;
+
+    public player: PlayerEntity;
+    public monsters: MobEntity[];
+
+    public gameWin: boolean;
+    public gameOver: boolean;
+    public waitingForEvent: boolean;
+    public inCombat: boolean;
+    public currentItemCell: null | { row: number, col: number, type: number };
+    public stats: Stats;
+
+    public constructor() {
+        this.currentLevel = 1;
+        this.player = new PlayerEntity();
+        this.maze = new Maze(this.size);
+        this.monsters = [];
+        this.stairsPos = {row: 38, col: 38};
+
+        this.gameWin = false;
+        this.gameOver = false;
+        this.waitingForEvent = false;
+        this.inCombat = false;
+        this.currentItemCell = null;
+        this.stats = newStats();
+    }
+
+    public reset() {
+        this.currentLevel = 1;
+        this.player = new PlayerEntity();
+        this.maze.reset();
+        this.monsters = [];
+
+        this.gameWin = false;
+        this.gameOver = false;
+        this.waitingForEvent = false;
+        this.inCombat = false;
+        this.currentItemCell = null;
+
+        this.stats = newStats();
+    }
+
+    /**
+     * 更新UI显示
+     */
+    public updateUI() {
+        document.getElementById('hpDisplay')!.innerText = this.player.getHealth() + '/' + this.player.getMaxHealth();
+        document.getElementById('atkDisplay')!.innerText = this.player.atk.toString();
+        document.getElementById('defDisplay')!.innerText = this.player.def.toString();
+        document.getElementById('monsterCount')!.innerText = this.monsters.length.toString();
+        document.getElementById('levelDisplay')!.innerText = this.currentLevel + '/' + GameState.TOTAL_LEVELS;
+    }
+
+    /**
+     * 计算曼哈顿距离
+     */
+    public manhattanDistance(r1: number, c1: number, r2: number, c2: number) {
+        return Math.abs(r1 - r2) + Math.abs(c1 - c2);
+    }
+
+    /**
+     * 获取可用于生成怪物的空闲格子
+     */
+    public getFreeCellsForMonsters() {
+        let free = [];
+        for (let r = 1; r < this.size - 1; r++) {
+            for (let c = 1; c < this.size - 1; c++) {
+                if (this.maze.get(r, c) === 1 &&
+                    !(r === 1 && c === 1) &&
+                    !(r === this.stairsPos.row && c === this.stairsPos.col)) {
+                    free.push([r, c]);
+                }
+            }
+        }
+        return free;
+    }
+
+    /**
+     * 随机选择不重复索引
+     */
+    public selectRandomIndices(max: number, count: number, rng: Rng): number[] {
+        if (count >= max) {
+            return Array.from({length: max}, (_, i) => i);
+        }
+
+        const indices = [];
+        const selected = new Set();
+
+        while (indices.length < count && indices.length < max) {
+            const idx = Math.floor(rng.nextFloat() * max);
+            if (!selected.has(idx)) {
+                selected.add(idx);
+                indices.push(idx);
+            }
+        }
+
+        return indices;
+    }
+}
